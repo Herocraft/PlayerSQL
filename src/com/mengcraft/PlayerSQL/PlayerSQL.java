@@ -57,6 +57,9 @@ public class PlayerSQL extends JavaPlugin implements Listener
 	@Override
 	public void onDisable()
 	{
+		if (!getConfig().getBoolean("use")) {
+			return;
+		}
 		if (doSQL.openConnect()) {
 			if (doPlayer.saveAllPlayer()) {
 				getLogger().info("保存在线玩家数据成功");
