@@ -230,19 +230,4 @@ public class DoPlayer {
 			}
 		return b;
 		}
-	
-	public boolean loadAllPlayer()
-	{
-		Plugin plugin = PlayerSQL.plugin;
-		Player[] players  = plugin.getServer().getOnlinePlayers();
-		boolean b = true;
-		for (Player player : players) {
-			if(!loadPlayer(player)) {
-				b = false;
-				plugin.getLogger().info("载入玩家数据"  + player.getName() + "失败");
-			}
-		}
-		return b;
-		}
-	
 	}

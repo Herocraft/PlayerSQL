@@ -29,11 +29,11 @@ public class PlayerSQL extends JavaPlugin implements Listener
 				if (doSQL.createTables()) {
 					getServer().getPluginManager().registerEvents(this, this);
 					getLogger().info("数据表效验成功");
-					if (doPlayer.loadAllPlayer()) {
-						getLogger().info("载入在线玩家数据成功");
+					if (doPlayer.lockAllPlayer()) {
+						getLogger().info("锁定在线玩家数据成功");
 					}
 					else {
-						getLogger().info("载入在线玩家数据失败");
+						getLogger().info("锁定在线玩家数据失败");
 					}
 					getLogger().info("梦梦家高性能服务器出租");
 					getLogger().info("淘宝店 http://shop105595113.taobao.com");
