@@ -1,6 +1,6 @@
 name: PlayerSQL
 main: com.mengcraft.PlayerSQL.PlayerSQL
-version: 0.2.2
+version: 0.3.1
 commands:
     player:
         description:

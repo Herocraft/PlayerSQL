@@ -21,6 +21,7 @@ public class PlayerSQL extends JavaPlugin implements Listener
 	public void onEnable()
 	{
 		saveDefaultConfig();
+		reloadConfig();
 		if (getConfig().getBoolean("use")) {
 			plugin = this;
 			if (doSQL.openConnect()) {
@@ -107,18 +108,23 @@ public class PlayerSQL extends JavaPlugin implements Listener
 	
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
-		Player player = event.getPlayer();
-		if (doPlayer.loadPlayer(player)) {
-			getLogger().info("载入玩家数据"
-					+ player.getName()
-					+ "成功");
-		}
-		else {
-			player.sendMessage("自动载入玩家数据失败");
-			player.sendMessage("请联系管理员手动载入");
-			getLogger().info("载入玩家数据"
-					+ player.getName()
-					+ "失败");
+		final Player player = event.getPlayer();
+		getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+			@Override
+			public void run() {
+				if (doPlayer.loadPlayer(player)) {
+					getLogger().info("载入玩家数据"
+							+ player.getName()
+							+ "成功");
+					}
+				else {
+					player.sendMessage("自动载入玩家数据失败");
+					player.sendMessage("请联系管理员手动载入");
+					getLogger().info("载入玩家数据"
+							+ player.getName()
+							+ "失败");
+					}
 			}
+		}, getConfig().getInt("delay"));
 	}
 }

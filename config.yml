@@ -8,3 +8,7 @@ mysql:
     data: minecraft
     user: user
     pass: pass
+    
+# 读取延迟单位Tick
+# 如果出现载入玩家数据失败请适当调大该值
+delay: 10
