@@ -155,23 +155,6 @@ public class DoPlayer {
 			}
 		}
 	
-	public boolean unlockPlayer(Player player)
-	{
-		String playerName = player.getName().toLowerCase();
-		try {
-			Statement statement = DoSQL.connection.createStatement();
-			String sql = "UPDATE PlayerSQL "
-					+ "SET Locked = 0 "
-					+ "WHERE PlayerName = '" + playerName + "';";
-			statement.executeUpdate(sql);
-			statement.close();
-			return true;
-		}
-		catch (SQLException e) {
-			return false;
-			}
-		}
-	
 	public boolean lockPlayer(Player player)
 	{
 		String playerName = player.getName().toLowerCase();
@@ -189,19 +172,6 @@ public class DoPlayer {
 			}
 		}
 	
-	public boolean unlockAllPlayer()
-	{
-		Plugin plugin = PlayerSQL.plugin;
-		Player[] players  = plugin.getServer().getOnlinePlayers();
-		boolean b = true;
-		for (Player player : players) {
-			if(!unlockPlayer(player)) {
-				b = false;
-			}
-		}
-		return b;
-		}
-	
 	public boolean lockAllPlayer()
 	{
 		Plugin plugin = PlayerSQL.plugin;
@@ -209,6 +179,32 @@ public class DoPlayer {
 		boolean b = true;
 		for (Player player : players) {
 			if(!lockPlayer(player)) {
+				b = false;
+				}
+			}
+		return b;
+		}
+	
+	public boolean saveAllPlayer()
+	{
+		Plugin plugin = PlayerSQL.plugin;
+		Player[] players  = plugin.getServer().getOnlinePlayers();
+		boolean b = true;
+		for (Player player : players) {
+			if(!savePlayer(player)) {
+				b = false;
+				}
+			}
+		return b;
+		}
+	
+	public boolean loadAllPlayer()
+	{
+		Plugin plugin = PlayerSQL.plugin;
+		Player[] players  = plugin.getServer().getOnlinePlayers();
+		boolean b = true;
+		for (Player player : players) {
+			if(!loadPlayer(player)) {
 				b = false;
 			}
 		}

@@ -1,5 +1,7 @@
 package com.mengcraft.PlayerSQL;
 
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,6 +15,7 @@ public class PlayerSQL extends JavaPlugin implements Listener
 	public static Plugin plugin;
 	DoSQL doSQL = new DoSQL();
 	DoPlayer doPlayer = new DoPlayer();
+	DoCommand doCommand = new DoCommand();
 	
 	@Override
 	public void onEnable()
@@ -25,7 +28,12 @@ public class PlayerSQL extends JavaPlugin implements Listener
 				if (doSQL.createTables()) {
 					getServer().getPluginManager().registerEvents(this, this);
 					getLogger().info("数据表效验成功");
-					doPlayer.lockAllPlayer();
+					if (doPlayer.loadAllPlayer()) {
+						getLogger().info("载入在线玩家数据成功");
+					}
+					else {
+						getLogger().info("载入在线玩家数据失败");
+					}
 					getLogger().info("梦梦家高性能服务器出租");
 					getLogger().info("淘宝店 http://shop105595113.taobao.com");
 					
@@ -50,7 +58,12 @@ public class PlayerSQL extends JavaPlugin implements Listener
 	public void onDisable()
 	{
 		if (doSQL.openConnect()) {
-			doPlayer.unlockAllPlayer();
+			if (doPlayer.saveAllPlayer()) {
+				getLogger().info("保存在线玩家数据成功");
+			}
+			else {
+				getLogger().info("保存在线玩家数据失败");
+			}
 			if (doSQL.closeConnect()) {
 				getLogger().info("关闭数据库连接成功");
 				}
@@ -61,6 +74,18 @@ public class PlayerSQL extends JavaPlugin implements Listener
 		getLogger().info("高性能服务器出租");
 		getLogger().info("淘宝店 http://shop105595113.taobao.com");
 		}
+	
+	@Override
+	public boolean onCommand(CommandSender sender, Command command,
+			String label, String[] args) {
+		if (command.getName().equalsIgnoreCase("player")) {
+			return doCommand.onPlayer(sender, args);
+		}
+		if (command.getName().equalsIgnoreCase("playeradmin")) {
+			return doCommand.onPlayeradmin(sender, args);
+		}
+		return false;
+	}
 	
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
@@ -87,7 +112,7 @@ public class PlayerSQL extends JavaPlugin implements Listener
 		}
 		else {
 			player.sendMessage("自动载入玩家数据失败");
-			player.sendMessage("请立即手动执行/player load手动载入");
+			player.sendMessage("请联系管理员手动载入");
 			getLogger().info("载入玩家数据"
 					+ player.getName()
 					+ "失败");

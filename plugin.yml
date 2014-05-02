@@ -1,13 +1,17 @@
 name: PlayerSQL
 main: com.mengcraft.PlayerSQL.PlayerSQL
-version: 0.1.2
+version: 0.2.1
 commands:
     player:
         description:
         usage: 
         permission: playersql.use
         permission-message:
-
+    playeradmin:
+        description:
+        usage: 
+        permission: playersql.admin
+        permission-message:
 permissions:
     playersql.use:
         description: 
