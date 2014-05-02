@@ -260,38 +260,40 @@ class DailySave implements Runnable
 {
 	DoPlayer doPlayer = new DoPlayer();
 	static int j = 0;
-	static Player[] players;
+	static Player[] players = null;
 
 	@Override
 	public void run()
 	{
 		listPlayer();
-		if (j < players.length) {
-			if (players[j].isOnline()) {
-				Plugin plugin = PlayerSQL.plugin;
-				if (doPlayer.savePlayer(players[j])) {
-					plugin.getLogger().info("循环保存" + players[0].getName() + "成功");
+		if (players != null) {
+			if (j < players.length) {
+				if (players[j].isOnline()) {
+					Plugin plugin = PlayerSQL.plugin;
+					if (doPlayer.savePlayer(players[j])) {
+						plugin.getLogger().info("循环保存" + players[0].getName() + "成功");
+						}
+					else {
+						plugin.getLogger().info("循环保存" + players[0].getName() + "失败");
+						}
 					}
-				else {
-					plugin.getLogger().info("循环保存" + players[0].getName() + "失败");
-					}
+				j++;
 				}
-			j++;
-			}
-		else {
-			j = 0;
+			else {
+				j = 0;
+				players = null;
+				}
 			}
 		}
 	
 	void listPlayer() {
 		Plugin plugin = PlayerSQL.plugin;
 		int min = plugin.getConfig().getInt("daily.min");
-		if (plugin.getServer().getOnlinePlayers().length > min) {
-			if (j < 1) {
+		if (plugin.getServer().getOnlinePlayers().length > min
+				&& j < 1) {
 				players = plugin.getServer().getOnlinePlayers();
 				if (players.length > 0) {
 					plugin.getLogger().info("在线玩家: " + players.length);
-					}
 				}
 			}
 		}
