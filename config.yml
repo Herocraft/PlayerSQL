@@ -1,0 +1,10 @@
+# 总开关
+use: false
+
+# 数据库连接信息
+mysql:
+    addr: 127.0.0.1
+    port: 3306
+    data: minecraft
+    user: user
+    pass: pass
