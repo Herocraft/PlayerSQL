@@ -19,8 +19,7 @@ public class DoCommand {
 			}
 			if (args.length < 2) {
 				if (args[0].equals("save")) {
-					if (doPlayer.savePlayer((Player)sender) &&
-							doPlayer.lockPlayer((Player)sender)) {
+					if (doPlayer.savePlayer((Player)sender)) {
 						sender.sendMessage("保存玩家数据成功");
 						return true;
 					}
@@ -56,8 +55,7 @@ public class DoCommand {
 		}
 		if (args.length < 2) {
 			if (args[0].equalsIgnoreCase("save-all")) {
-				if (doPlayer.saveAllPlayer() 
-						&& doPlayer.lockAllPlayer()) {
+				if (doPlayer.saveAllPlayer()) {
 					sender.sendMessage("保存在线玩家数据成功");
 					return true;
 				}
