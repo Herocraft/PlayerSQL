@@ -95,6 +95,7 @@ public class DoSQL {
 						+ "Health int, "
 						+ "Level int, "
 						+ "Exp text, "
+						+ "Armor text, "
 						+ "Inventory text, "
 						+ "EnderChest text, "
 						+ "PRIMARY KEY (Id));";

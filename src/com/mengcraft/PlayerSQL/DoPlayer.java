@@ -25,6 +25,22 @@ public class DoPlayer {
 		PlayerInventory inventory = player.getInventory();
 		Inventory enderChest = player.getEnderChest();
 		
+		StringBuilder armorDataBuilder = new StringBuilder();
+		ItemStack[] armorStacks= inventory.getArmorContents();
+		for (int i = 0; i < armorStacks.length; i++) {
+			if (i > 0) {
+				armorDataBuilder.append(";");
+			}
+			if (armorStacks[i] != null) {
+				try {
+					armorDataBuilder.append(StreamSerializer.getDefault().serializeItemStack(armorStacks[i]));
+				} catch (IOException e) {
+					return false;
+				}
+			}
+		}
+		String armorData = armorDataBuilder.toString();
+		
 		StringBuilder inventoryDataBuilder = new StringBuilder();
 		ItemStack[] inventoryStacks = inventory.getContents();
 		for (int i = 0; i < inventory.getSize(); i++) {
@@ -64,6 +80,7 @@ public class DoPlayer {
 					+ "Health = " + health + ", "
 					+ "Level = " + level	+ ", "
 					+ "Exp = " + Float.toString(exp) + ", "
+					+ "Armor = '" + armorData + "', "
 					+ "Inventory = '"	+ inventoryData + "', "
 					+ "EnderChest = '" + enderChestData	+ "' "
 					+ "WHERE PlayerName = '" + playerName + "';";
@@ -80,7 +97,7 @@ public class DoPlayer {
 		String playerName = player.getName().toLowerCase();
 		try {
 			Statement statement = DoSQL.connection.createStatement();
-			String sql = "SELECT Locked, Health, Level, Exp, Inventory, EnderChest "
+			String sql = "SELECT Locked, Health, Level, Exp, Armor, Inventory, EnderChest "
 					+ "FROM PlayerSQL "
 					+ "WHERE PlayerName = '" + playerName + "';";
 			ResultSet resultSet = statement.executeQuery(sql);
@@ -92,8 +109,9 @@ public class DoPlayer {
 					double health = resultSet.getDouble(2);
 					int level = resultSet.getInt(3);
 					float exp = resultSet.getFloat(4);
-					String inventoryData = resultSet.getString(5);
-					String enderChestData = resultSet.getString(6);
+					String armorData = resultSet.getString(5);
+					String inventoryData = resultSet.getString(6);
+					String enderChestData = resultSet.getString(7);
 					
 					if (health != 0) {
 						player.setHealth(health);
@@ -104,10 +122,24 @@ public class DoPlayer {
 					PlayerInventory inventory = player.getInventory();
 					Inventory enderChest = player.getEnderChest();
 					
+					if (armorData == null) {
+						return true;
+					}
+					String[] armorItems = armorData.split(";");
+					ItemStack[] armorStacks = new ItemStack[armorItems.length];
+					for (int i = 0; i < armorStacks.length; i++) {
+						if (!armorItems[i].equals("")) {
+							armorStacks[i] = StreamSerializer.getDefault().deserializeItemStack(armorItems[i]);
+						}
+						else {
+							continue;
+						}
+					}
+					inventory.setArmorContents(armorStacks);
+					
 					if (inventoryData == null) {
 						return true;
 					}
-						
 					String[] inventoryItems = inventoryData.split(";");
 					ItemStack[] inventoryStacks = new ItemStack[inventory.getSize()];
 					for (int i = 0; i < inventoryItems.length; i++) {
@@ -123,7 +155,6 @@ public class DoPlayer {
 					if (enderChestData == null) {
 						return true;
 					}
-					
 					String[] enderChestItems = enderChestData.split(";");
 					ItemStack[] enderChestStacks = new ItemStack[enderChest.getSize()];
 					for (int i = 0; i < enderChestItems.length; i++) {
