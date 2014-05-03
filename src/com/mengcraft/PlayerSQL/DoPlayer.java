@@ -227,7 +227,7 @@ public class DoPlayer {
 		for (Player player : players) {
 			if(!lockPlayer(player)) {
 				b = false;
-				plugin.getLogger().info("锁定玩家"  + player.getName() + "失败");
+				plugin.getLogger().info("锁定玩家 "  + player.getName() + " 失败");
 				}
 			}
 		return b;
@@ -241,7 +241,7 @@ public class DoPlayer {
 		for (Player player : players) {
 			if(!savePlayer(player)) {
 				b = false;
-				plugin.getLogger().info("保存玩家"  + player.getName() + "失败");
+				plugin.getLogger().info("保存玩家 "  + player.getName() + " 失败");
 				}
 			}
 		return b;
@@ -271,11 +271,11 @@ class DailySave implements Runnable
 				if (players[j].isOnline()) {
 					Plugin plugin = PlayerSQL.plugin;
 					if (doPlayer.savePlayer(players[j])) {
-						plugin.getLogger().info("保存玩家" + players[j].getName() + "成功");
+						plugin.getLogger().info("保存玩家 " + players[j].getName() + " 成功");
 						plugin.getLogger().info("进度 " + j + " / " + players.length);
 						}
 					else {
-						plugin.getLogger().info("保存玩家" + players[j].getName() + "失败");
+						plugin.getLogger().info("保存玩家 " + players[j].getName() + " 失败");
 						plugin.getLogger().info("进度 " + j + " / " + players.length);
 						}
 					}
@@ -295,7 +295,7 @@ class DailySave implements Runnable
 				&& j < 1) {
 				players = plugin.getServer().getOnlinePlayers();
 				if (players.length > 0) {
-					plugin.getLogger().info("在线玩家: " + players.length);
+					plugin.getLogger().info("在线玩家: " + players.length + " 人");
 				}
 			}
 		}
