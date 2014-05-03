@@ -35,7 +35,9 @@ public class PlayerSQL extends JavaPlugin implements Listener {
 					Bukkit.getConsoleSender().sendMessage(
 							ChatColor.GREEN
 									+ "淘宝店 http://shop105595113.taobao.com");
-					doPlayer.lockAllPlayer();
+					if (doPlayer.lockAllPlayer()) {
+						getLogger().info("锁定在线玩家成功");
+					}
 					doPlayer.dailySavePlayer();
 				} else {
 					getLogger().info("数据表效验失败");
@@ -57,7 +59,9 @@ public class PlayerSQL extends JavaPlugin implements Listener {
 			return;
 		}
 		if (doSQL.openConnect()) {
-			doPlayer.saveAllPlayer();
+			if (doPlayer.saveAllPlayer() && doPlayer.unlockAllPlayer()) {
+				getLogger().info("保存在线玩家成功");
+			}
 			if (doSQL.closeConnect()) {
 				getLogger().info("关闭数据库连接成功");
 			} else {

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -105,9 +104,8 @@ public class DoPlayer {
 			ResultSet resultSet = statement.executeQuery(sql);
 			if (resultSet.last()) {
 				if (resultSet.getInt(1) > 0) {
-					unlockPlayer(player);
 					Bukkit.getConsoleSender().sendMessage(
-							ChatColor.RED + "检测到玩家数据锁有误频繁出现请调高delay");
+							ChatColor.RED + "玩家数据锁状态有误");
 				}
 				double health = resultSet.getDouble(2);
 				int level = resultSet.getInt(3);
@@ -170,6 +168,7 @@ public class DoPlayer {
 					}
 				}
 				enderChest.setContents(enderChestStacks);
+				statement.close();
 				return true;
 			} else {
 				sql = "INSERT INTO PlayerSQL " + "(PlayerName, Locked) "
@@ -226,6 +225,19 @@ public class DoPlayer {
 		return b;
 	}
 
+	public boolean unlockAllPlayer() {
+		Plugin plugin = PlayerSQL.plugin;
+		Player[] players = plugin.getServer().getOnlinePlayers();
+		boolean b = true;
+		for (Player player : players) {
+			if (!unlockPlayer(player)) {
+				b = false;
+				plugin.getLogger().info("解锁玩家 " + player.getName() + " 失败");
+			}
+		}
+		return b;
+	}
+
 	public boolean saveAllPlayer() {
 		Plugin plugin = PlayerSQL.plugin;
 		Player[] players = plugin.getServer().getOnlinePlayers();
@@ -260,7 +272,7 @@ class DailySave implements Runnable {
 	public void run() {
 		listPlayer();
 		if (players != null) {
-			while (!players[j].isOnline()) {
+			while (j < players.length && !players[j].isOnline()) {
 				if (j + 1 < players.length) {
 					j = j + 1;
 					continue;
@@ -269,22 +281,19 @@ class DailySave implements Runnable {
 				break;
 			}
 			if (j < players.length) {
-				if (players[j].isOnline()) {
-					if (doPlayer.savePlayer(players[j])) {
-						Bukkit.getConsoleSender().sendMessage(
-								ChatColor.GREEN + "保存玩家 "
-										+ players[j].getName() + " 成功");
-						Bukkit.getConsoleSender().sendMessage(
-								ChatColor.GREEN + "进度 " + j + " / "
-										+ players.length);
-					} else {
-						Bukkit.getConsoleSender().sendMessage(
-								ChatColor.RED + "保存玩家 " + players[j].getName()
-										+ " 失败");
-						Bukkit.getConsoleSender().sendMessage(
-								ChatColor.RED + "进度 " + j + " / "
-										+ players.length);
-					}
+				if (doPlayer.savePlayer(players[j])) {
+					Bukkit.getConsoleSender().sendMessage(
+							ChatColor.GREEN + "保存玩家 " + players[j].getName()
+									+ " 成功");
+					Bukkit.getConsoleSender().sendMessage(
+							ChatColor.GREEN + "进度 " + j + " / "
+									+ players.length);
+				} else {
+					Bukkit.getConsoleSender().sendMessage(
+							ChatColor.RED + "保存玩家 " + players[j].getName()
+									+ " 失败");
+					Bukkit.getConsoleSender().sendMessage(
+							ChatColor.RED + "进度 " + j + " / " + players.length);
 				}
 				j = j + 1;
 			} else {
