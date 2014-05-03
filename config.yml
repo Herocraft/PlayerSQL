@@ -1,5 +1,5 @@
 use: false
-delay: 10
+delay: 5
 
 daily:
   use: true
