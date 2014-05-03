@@ -267,6 +267,10 @@ class DailySave implements Runnable
 	{
 		listPlayer();
 		if (players != null) {
+			while (!players[j].isOnline() 
+					&& j < players.length) {
+				j = j + 1;
+			}
 			if (j < players.length) {
 				if (players[j].isOnline()) {
 					Plugin plugin = PlayerSQL.plugin;
