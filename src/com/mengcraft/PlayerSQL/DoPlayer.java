@@ -260,8 +260,13 @@ class DailySave implements Runnable {
 	public void run() {
 		listPlayer();
 		if (players != null) {
-			while (!players[j].isOnline() && j < players.length - 1) {
+			while (!players[j].isOnline()) {
+				if (j + 1 < players.length) {
+					j = j + 1;
+					continue;
+				}
 				j = j + 1;
+				break;
 			}
 			if (j < players.length) {
 				if (players[j].isOnline()) {
