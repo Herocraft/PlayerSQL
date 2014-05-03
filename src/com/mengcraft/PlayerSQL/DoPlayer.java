@@ -14,7 +14,7 @@ import org.bukkit.inventory.PlayerInventory;
 import com.comphenix.protocol.utility.StreamSerializer;
 
 public class DoPlayer {
-	DoSQL doSQL = new DoSQL();
+	static DailySaveThread dailySaveThread;
 
 	public Boolean savePlayer(Player player) {
 		String playerName = player.getName().toLowerCase();
@@ -253,7 +253,7 @@ public class DoPlayer {
 
 	public void dailySavePlayer() {
 		if (PlayerSQL.plugin.getConfig().getBoolean("daily.use")) {
-			DailySaveThread dailySaveThread = new DailySaveThread();
+			dailySaveThread = new DailySaveThread();
 			dailySaveThread.start();
 		}
 	}
@@ -280,6 +280,9 @@ class DailySaveThread extends Thread {
 				Bukkit.getConsoleSender().sendMessage(
 						ChatColor.GREEN + "开始保存在线玩家: " + players.length + " 人");
 				for (int i = 0; i < players.length; i++) {
+					if (!players[i].isOnline()) {
+						continue;
+					}
 					try {
 						Thread.sleep(delay * 50);
 					} catch (InterruptedException e) {

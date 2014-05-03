@@ -14,10 +14,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class PlayerSQL extends JavaPlugin implements Listener {
 	public static Plugin plugin;
-	static PlayerJoinEvent joinEvent;
-	DoSQL doSQL = new DoSQL();
-	DoPlayer doPlayer = new DoPlayer();
-	DoCommand doCommand = new DoCommand();
+	private DelayLoadThread delayLoadThread;
+	private DoSQL doSQL = new DoSQL();
+	private DoPlayer doPlayer = new DoPlayer();
+	private DoCommand doCommand = new DoCommand();
+	
 
 	@Override
 	public void onEnable() {
@@ -71,6 +72,9 @@ public class PlayerSQL extends JavaPlugin implements Listener {
 		Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "高性能服务器出租");
 		Bukkit.getConsoleSender().sendMessage(
 				ChatColor.GREEN + "淘宝店 http://shop105595113.taobao.com");
+		if(getConfig().getBoolean("daily.use")) {
+			DoPlayer.dailySaveThread.stop();
+		}
 	}
 
 	@Override
@@ -100,7 +104,7 @@ public class PlayerSQL extends JavaPlugin implements Listener {
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
-		DelayLoadThread delayLoadThread = new DelayLoadThread(event);
+		delayLoadThread = new DelayLoadThread(event);
 		delayLoadThread.start();
 	}
 }
