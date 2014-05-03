@@ -1,5 +1,7 @@
 package com.mengcraft.PlayerSQL;
 
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -29,8 +31,8 @@ public class PlayerSQL extends JavaPlugin implements Listener
 				if (doSQL.createTables()) {
 					getServer().getPluginManager().registerEvents(this, this);
 					getLogger().info("数据表效验成功");
-					getLogger().info("梦梦家高性能服务器出租");
-					getLogger().info("淘宝店 http://shop105595113.taobao.com");
+					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "梦梦家高性能服务器出租");
+					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "淘宝店 http://shop105595113.taobao.com");
 					doPlayer.lockAllPlayer();
 					doPlayer.dailySavePlayer();
 				}
@@ -65,8 +67,8 @@ public class PlayerSQL extends JavaPlugin implements Listener
 					getLogger().info("关闭数据库连接失败");
 					}
 		}
-		getLogger().info("高性能服务器出租");
-		getLogger().info("淘宝店 http://shop105595113.taobao.com");
+		Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "高性能服务器出租");
+		Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "淘宝店 http://shop105595113.taobao.com");
 		}
 	
 	@Override

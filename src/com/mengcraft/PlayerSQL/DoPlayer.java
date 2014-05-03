@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -93,7 +96,6 @@ public class DoPlayer {
 	
 	public boolean loadPlayer(Player player)
 	{
-		Plugin plugin = PlayerSQL.plugin;
 		String playerName = player.getName().toLowerCase();
 		try {
 			Statement statement = DoSQL.connection.createStatement();
@@ -104,7 +106,7 @@ public class DoPlayer {
 			if (resultSet.last()) {
 				if (resultSet.getInt(1) > 0) {
 					unlockPlayer(player);
-					plugin.getLogger().info("检测到数据锁有误频繁出现请调高delay");
+					Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "检测到玩家数据锁有误频繁出现请调高delay");
 				}
 				double health = resultSet.getDouble(2);
 				int level = resultSet.getInt(3);
@@ -273,14 +275,13 @@ class DailySave implements Runnable
 			}
 			if (j < players.length) {
 				if (players[j].isOnline()) {
-					Plugin plugin = PlayerSQL.plugin;
 					if (doPlayer.savePlayer(players[j])) {
-						plugin.getLogger().info("保存玩家 " + players[j].getName() + " 成功");
-						plugin.getLogger().info("进度 " + j + " / " + players.length);
+						Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "保存玩家 " + players[j].getName() + " 成功");
+						Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "进度 " + j + " / " + players.length);
 						}
 					else {
-						plugin.getLogger().info("保存玩家 " + players[j].getName() + " 失败");
-						plugin.getLogger().info("进度 " + j + " / " + players.length);
+						Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "保存玩家 " + players[j].getName() + " 失败");
+						Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "进度 " + j + " / " + players.length);
 						}
 					}
 				j = j + 1;
@@ -299,7 +300,7 @@ class DailySave implements Runnable
 				&& j < 1) {
 				players = plugin.getServer().getOnlinePlayers();
 				if (players.length > 0) {
-					plugin.getLogger().info("在线玩家: " + players.length + " 人");
+					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "在线玩家: " + players.length + " 人");
 				}
 			}
 		}
