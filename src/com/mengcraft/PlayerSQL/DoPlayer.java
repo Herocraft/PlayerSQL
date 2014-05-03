@@ -4,14 +4,13 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.plugin.Plugin;
-
 import com.comphenix.protocol.utility.StreamSerializer;
 
 public class DoPlayer {
@@ -214,104 +213,89 @@ public class DoPlayer {
 	}
 
 	public boolean lockAllPlayer() {
-		Plugin plugin = PlayerSQL.plugin;
-		Player[] players = plugin.getServer().getOnlinePlayers();
+		Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
 		boolean b = true;
 		for (Player player : players) {
 			if (!lockPlayer(player)) {
 				b = false;
-				plugin.getLogger().info("锁定玩家 " + player.getName() + " 失败");
+				PlayerSQL.plugin.getLogger().info(
+						"锁定玩家 " + player.getName() + " 失败");
 			}
 		}
 		return b;
 	}
 
 	public boolean unlockAllPlayer() {
-		Plugin plugin = PlayerSQL.plugin;
-		Player[] players = plugin.getServer().getOnlinePlayers();
+		Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
 		boolean b = true;
 		for (Player player : players) {
 			if (!unlockPlayer(player)) {
 				b = false;
-				plugin.getLogger().info("解锁玩家 " + player.getName() + " 失败");
+				PlayerSQL.plugin.getLogger().info(
+						"解锁玩家 " + player.getName() + " 失败");
 			}
 		}
 		return b;
 	}
 
 	public boolean saveAllPlayer() {
-		Plugin plugin = PlayerSQL.plugin;
-		Player[] players = plugin.getServer().getOnlinePlayers();
+		Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
 		boolean b = true;
 		for (Player player : players) {
 			if (!savePlayer(player)) {
 				b = false;
-				plugin.getLogger().info("保存玩家 " + player.getName() + " 失败");
+				PlayerSQL.plugin.getLogger().info(
+						"保存玩家 " + player.getName() + " 失败");
 			}
 		}
 		return b;
 	}
 
 	public void dailySavePlayer() {
-		Plugin plugin = PlayerSQL.plugin;
-		if (plugin.getConfig().getBoolean("daily.use")) {
-			int delay = plugin.getConfig().getInt("daily.delay");
-			plugin.getServer()
-					.getScheduler()
-					.scheduleSyncRepeatingTask(plugin, new DailySave(), 600,
-							delay);
+		if (PlayerSQL.plugin.getConfig().getBoolean("daily.use")) {
+			DailySaveThread dailySaveThread = new DailySaveThread();
+			dailySaveThread.start();
 		}
 	}
 }
 
-class DailySave implements Runnable {
+class DailySaveThread extends Thread {
 	DoPlayer doPlayer = new DoPlayer();
-	static int j = 0;
-	static Player[] players = null;
 
 	@Override
 	public void run() {
-		listPlayer();
-		if (players != null) {
-			while (j < players.length && !players[j].isOnline()) {
-				if (j + 1 < players.length) {
-					j = j + 1;
-					continue;
-				}
-				j = j + 1;
-				break;
-			}
-			if (j < players.length) {
-				if (doPlayer.savePlayer(players[j])) {
-					Bukkit.getConsoleSender().sendMessage(
-							ChatColor.GREEN + "保存玩家 " + players[j].getName()
-									+ " 成功");
-					Bukkit.getConsoleSender().sendMessage(
-							ChatColor.GREEN + "进度 " + j + " / "
-									+ players.length);
-				} else {
-					Bukkit.getConsoleSender().sendMessage(
-							ChatColor.RED + "保存玩家 " + players[j].getName()
-									+ " 失败");
-					Bukkit.getConsoleSender().sendMessage(
-							ChatColor.RED + "进度 " + j + " / " + players.length);
-				}
-				j = j + 1;
-			} else {
-				j = 0;
-				players = null;
-			}
-		}
-	}
+		int delay = PlayerSQL.plugin.getConfig().getInt("daily.delay");
+		int min = PlayerSQL.plugin.getConfig().getInt("daily.min");
+		Player[] players;
 
-	void listPlayer() {
-		Plugin plugin = PlayerSQL.plugin;
-		int min = plugin.getConfig().getInt("daily.min");
-		if (plugin.getServer().getOnlinePlayers().length > min && j < 1) {
-			players = plugin.getServer().getOnlinePlayers();
-			if (players.length > 0) {
+		while (true) {
+			try {
+				Thread.sleep(delay * 250);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			players = PlayerSQL.plugin.getServer().getOnlinePlayers();
+			if (players.length > min) {
 				Bukkit.getConsoleSender().sendMessage(
-						ChatColor.GREEN + "在线玩家: " + players.length + " 人");
+						ChatColor.GREEN + "开始保存在线玩家: " + players.length + " 人");
+				for (int i = 0; i < players.length; i++) {
+					try {
+						Thread.sleep(delay * 50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					if (doPlayer.savePlayer(players[i])) {
+						Bukkit.getConsoleSender().sendMessage(
+								ChatColor.GREEN + "保存玩家 "
+										+ players[i].getName() + " 成功");
+						Bukkit.getConsoleSender().sendMessage(
+								ChatColor.GREEN + "进度 " + (i + 1) + " / "
+										+ players.length);
+					}
+				}
+				Bukkit.getConsoleSender().sendMessage(
+						ChatColor.GREEN + "保存在线玩家: " + players.length + " 人完毕");
 			}
 		}
 	}

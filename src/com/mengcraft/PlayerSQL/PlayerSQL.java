@@ -14,7 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class PlayerSQL extends JavaPlugin implements Listener {
 	public static Plugin plugin;
-	static PlayerJoinEvent playerJoinEvent;
+	static PlayerJoinEvent joinEvent;
 	DoSQL doSQL = new DoSQL();
 	DoPlayer doPlayer = new DoPlayer();
 	DoCommand doCommand = new DoCommand();
@@ -100,28 +100,38 @@ public class PlayerSQL extends JavaPlugin implements Listener {
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
-		playerJoinEvent = event;
-		getServer().getScheduler().scheduleSyncDelayedTask(plugin,
-				new DelayLoadPlayer(), getConfig().getInt("delay"));
+		DelayLoadThread delayLoadThread = new DelayLoadThread(event);
+		delayLoadThread.start();
 	}
 }
 
-class DelayLoadPlayer implements Runnable {
+class DelayLoadThread extends Thread {
+	private Player player;
 	DoPlayer doPlayer = new DoPlayer();
-	Plugin plugin = PlayerSQL.plugin;
-	Player player = PlayerSQL.playerJoinEvent.getPlayer();
+
+	public DelayLoadThread(PlayerJoinEvent event) {
+		player = event.getPlayer();
+	}
 
 	@Override
 	public void run() {
+		try {
+			Thread.sleep(PlayerSQL.plugin.getConfig().getLong("delay") * 50);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		if (doPlayer.loadPlayer(player)) {
-			plugin.getLogger().info("载入玩家 " + player.getName() + " 成功");
+			PlayerSQL.plugin.getLogger().info(
+					"载入玩家 " + player.getName() + " 成功");
 			if (!doPlayer.lockPlayer(player)) {
-				plugin.getLogger().info("锁定玩家 " + player.getName() + " 失败");
+				PlayerSQL.plugin.getLogger().info(
+						"锁定玩家 " + player.getName() + " 失败");
 			}
 		} else {
 			player.sendMessage("自动载入玩家失败");
 			player.sendMessage("请联系管理员");
-			plugin.getLogger().info("载入玩家 " + player.getName() + " 失败");
+			PlayerSQL.plugin.getLogger().info(
+					"载入玩家 " + player.getName() + " 失败");
 		}
 	}
 
