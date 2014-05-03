@@ -20,6 +20,7 @@ public class DoPlayer {
 	public Boolean savePlayer(Player player) {
 		String playerName = player.getName().toLowerCase();
 		double health = player.getHealth();
+		int food = player.getFoodLevel();
 		int level = player.getLevel();
 		float exp = player.getExp();
 		PlayerInventory inventory = player.getInventory();
@@ -79,10 +80,10 @@ public class DoPlayer {
 		try {
 			Statement statement = DoSQL.connection.createStatement();
 			String sql = "UPDATE PlayerSQL " + "SET " + "Health = " + health
-					+ ", " + "Level = " + level + ", " + "Exp = "
-					+ Float.toString(exp) + ", " + "Armor = '" + armorData
-					+ "', " + "Inventory = '" + inventoryData + "', "
-					+ "EnderChest = '" + enderChestData + "' "
+					+ ", Food = " + food + ", " + "Level = " + level + ", "
+					+ "Exp = " + Float.toString(exp) + ", " + "Armor = '"
+					+ armorData + "', " + "Inventory = '" + inventoryData
+					+ "', " + "EnderChest = '" + enderChestData + "' "
 					+ "WHERE PlayerName = '" + playerName + "';";
 			statement.executeUpdate(sql);
 			statement.close();
@@ -96,7 +97,7 @@ public class DoPlayer {
 		String playerName = player.getName().toLowerCase();
 		try {
 			Statement statement = DoSQL.connection.createStatement();
-			String sql = "SELECT Locked, Health, Level, Exp, Armor, Inventory, EnderChest "
+			String sql = "SELECT Locked, Health, Food, Level, Exp, Armor, Inventory, EnderChest "
 					+ "FROM PlayerSQL "
 					+ "WHERE PlayerName = '"
 					+ playerName
@@ -108,15 +109,15 @@ public class DoPlayer {
 							ChatColor.RED + "玩家数据锁状态有误");
 				}
 				double health = resultSet.getDouble(2);
-				int level = resultSet.getInt(3);
-				float exp = resultSet.getFloat(4);
-				String armorData = resultSet.getString(5);
-				String inventoryData = resultSet.getString(6);
-				String enderChestData = resultSet.getString(7);
+				int food = resultSet.getInt(3);
+				int level = resultSet.getInt(4);
+				float exp = resultSet.getFloat(5);
+				String armorData = resultSet.getString(6);
+				String inventoryData = resultSet.getString(7);
+				String enderChestData = resultSet.getString(8);
 
-				if (health != 0) {
-					player.setHealth(health);
-				}
+				player.setHealth(health);
+				player.setFoodLevel(food);
 				player.setLevel(level);
 				player.setExp(exp);
 
@@ -252,7 +253,7 @@ public class DoPlayer {
 	}
 
 	public void dailySavePlayer() {
-		final Plugin plugin = PlayerSQL.plugin;
+		Plugin plugin = PlayerSQL.plugin;
 		if (plugin.getConfig().getBoolean("daily.use")) {
 			int delay = plugin.getConfig().getInt("daily.delay");
 			plugin.getServer()

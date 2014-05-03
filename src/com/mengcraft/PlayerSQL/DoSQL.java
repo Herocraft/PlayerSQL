@@ -77,8 +77,8 @@ public class DoSQL {
 				String sql = "CREATE TABLE IF NOT EXISTS " + "PlayerSQL ("
 						+ "Id int NOT NULL AUTO_INCREMENT, "
 						+ "PlayerName text, " + "Locked int NOT NULL, "
-						+ "Health int, " + "Level int, " + "Exp text, "
-						+ "Armor text, " + "Inventory text, "
+						+ "Health int, " + "Food int, " + "Level int, "
+						+ "Exp text, " + "Armor text, " + "Inventory text, "
 						+ "EnderChest text, " + "PRIMARY KEY (Id));";
 				statement.executeUpdate(sql);
 				statement.close();
