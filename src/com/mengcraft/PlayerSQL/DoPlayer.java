@@ -17,32 +17,32 @@ import com.comphenix.protocol.utility.StreamSerializer;
 
 public class DoPlayer {
 	DoSQL doSQL = new DoSQL();
-	
-	public Boolean savePlayer(Player player)
-	{
+
+	public Boolean savePlayer(Player player) {
 		String playerName = player.getName().toLowerCase();
 		double health = player.getHealth();
 		int level = player.getLevel();
 		float exp = player.getExp();
 		PlayerInventory inventory = player.getInventory();
 		Inventory enderChest = player.getEnderChest();
-		
+
 		StringBuilder armorDataBuilder = new StringBuilder();
-		ItemStack[] armorStacks= inventory.getArmorContents();
+		ItemStack[] armorStacks = inventory.getArmorContents();
 		for (int i = 0; i < armorStacks.length; i++) {
 			if (i > 0) {
 				armorDataBuilder.append(";");
 			}
 			if (armorStacks[i] != null) {
 				try {
-					armorDataBuilder.append(StreamSerializer.getDefault().serializeItemStack(armorStacks[i]));
+					armorDataBuilder.append(StreamSerializer.getDefault()
+							.serializeItemStack(armorStacks[i]));
 				} catch (IOException e) {
 					return false;
 				}
 			}
 		}
 		String armorData = armorDataBuilder.toString();
-		
+
 		StringBuilder inventoryDataBuilder = new StringBuilder();
 		ItemStack[] inventoryStacks = inventory.getContents();
 		for (int i = 0; i < inventory.getSize(); i++) {
@@ -51,14 +51,15 @@ public class DoPlayer {
 			}
 			if (inventoryStacks[i] != null) {
 				try {
-					inventoryDataBuilder.append(StreamSerializer.getDefault().serializeItemStack(inventoryStacks[i]));
+					inventoryDataBuilder.append(StreamSerializer.getDefault()
+							.serializeItemStack(inventoryStacks[i]));
 				} catch (IOException e) {
 					return false;
 				}
 			}
 		}
 		String inventoryData = inventoryDataBuilder.toString();
-		
+
 		StringBuilder enderChestDataBuilder = new StringBuilder();
 		ItemStack[] enderChestStacks = enderChest.getContents();
 		for (int i = 0; i < enderChest.getSize(); i++) {
@@ -67,46 +68,46 @@ public class DoPlayer {
 			}
 			if (inventoryStacks[i] != null) {
 				try {
-					enderChestDataBuilder.append(StreamSerializer.getDefault().serializeItemStack(enderChestStacks[i]));
+					enderChestDataBuilder.append(StreamSerializer.getDefault()
+							.serializeItemStack(enderChestStacks[i]));
 				} catch (IOException e) {
 					return false;
 				}
 			}
 		}
 		String enderChestData = enderChestDataBuilder.toString();
-		
+
 		try {
 			Statement statement = DoSQL.connection.createStatement();
-			String sql = "UPDATE PlayerSQL "
-					+ "SET "
-					+ "Health = " + health + ", "
-					+ "Level = " + level	+ ", "
-					+ "Exp = " + Float.toString(exp) + ", "
-					+ "Armor = '" + armorData + "', "
-					+ "Inventory = '"	+ inventoryData + "', "
-					+ "EnderChest = '" + enderChestData	+ "' "
+			String sql = "UPDATE PlayerSQL " + "SET " + "Health = " + health
+					+ ", " + "Level = " + level + ", " + "Exp = "
+					+ Float.toString(exp) + ", " + "Armor = '" + armorData
+					+ "', " + "Inventory = '" + inventoryData + "', "
+					+ "EnderChest = '" + enderChestData + "' "
 					+ "WHERE PlayerName = '" + playerName + "';";
 			statement.executeUpdate(sql);
 			statement.close();
 			return true;
 		} catch (SQLException e) {
 			return false;
-			}
 		}
-	
-	public boolean loadPlayer(Player player)
-	{
+	}
+
+	public boolean loadPlayer(Player player) {
 		String playerName = player.getName().toLowerCase();
 		try {
 			Statement statement = DoSQL.connection.createStatement();
 			String sql = "SELECT Locked, Health, Level, Exp, Armor, Inventory, EnderChest "
 					+ "FROM PlayerSQL "
-					+ "WHERE PlayerName = '" + playerName + "';";
+					+ "WHERE PlayerName = '"
+					+ playerName
+					+ "';";
 			ResultSet resultSet = statement.executeQuery(sql);
 			if (resultSet.last()) {
 				if (resultSet.getInt(1) > 0) {
 					unlockPlayer(player);
-					Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "检测到玩家数据锁有误频繁出现请调高delay");
+					Bukkit.getConsoleSender().sendMessage(
+							ChatColor.RED + "检测到玩家数据锁有误频繁出现请调高delay");
 				}
 				double health = resultSet.getDouble(2);
 				int level = resultSet.getInt(3);
@@ -114,16 +115,16 @@ public class DoPlayer {
 				String armorData = resultSet.getString(5);
 				String inventoryData = resultSet.getString(6);
 				String enderChestData = resultSet.getString(7);
-				
+
 				if (health != 0) {
 					player.setHealth(health);
 				}
 				player.setLevel(level);
 				player.setExp(exp);
-				
+
 				PlayerInventory inventory = player.getInventory();
 				Inventory enderChest = player.getEnderChest();
-				
+
 				if (armorData == null) {
 					return true;
 				}
@@ -131,14 +132,14 @@ public class DoPlayer {
 				ItemStack[] armorStacks = new ItemStack[armorItems.length];
 				for (int i = 0; i < armorStacks.length; i++) {
 					if (!armorItems[i].equals("")) {
-						armorStacks[i] = StreamSerializer.getDefault().deserializeItemStack(armorItems[i]);
-					}
-					else {
+						armorStacks[i] = StreamSerializer.getDefault()
+								.deserializeItemStack(armorItems[i]);
+					} else {
 						continue;
 					}
 				}
 				inventory.setArmorContents(armorStacks);
-				
+
 				if (inventoryData == null) {
 					return true;
 				}
@@ -146,162 +147,157 @@ public class DoPlayer {
 				ItemStack[] inventoryStacks = new ItemStack[inventory.getSize()];
 				for (int i = 0; i < inventoryItems.length; i++) {
 					if (!inventoryItems[i].equals("")) {
-						inventoryStacks[i] = StreamSerializer.getDefault().deserializeItemStack(inventoryItems[i]);
-					}
-					else {
+						inventoryStacks[i] = StreamSerializer.getDefault()
+								.deserializeItemStack(inventoryItems[i]);
+					} else {
 						continue;
 					}
 				}
 				inventory.setContents(inventoryStacks);
-				
+
 				if (enderChestData == null) {
 					return true;
 				}
 				String[] enderChestItems = enderChestData.split(";");
-				ItemStack[] enderChestStacks = new ItemStack[enderChest.getSize()];
+				ItemStack[] enderChestStacks = new ItemStack[enderChest
+						.getSize()];
 				for (int i = 0; i < enderChestItems.length; i++) {
 					if (!enderChestItems[i].equals("")) {
-						enderChestStacks[i] = StreamSerializer.getDefault().deserializeItemStack(enderChestItems[i]);
-					}
-					else {
+						enderChestStacks[i] = StreamSerializer.getDefault()
+								.deserializeItemStack(enderChestItems[i]);
+					} else {
 						continue;
 					}
 				}
 				enderChest.setContents(enderChestStacks);
 				return true;
-				}
-			else {
-				sql = "INSERT INTO PlayerSQL "
-						+ "(PlayerName, Locked) "
+			} else {
+				sql = "INSERT INTO PlayerSQL " + "(PlayerName, Locked) "
 						+ "VALUES ('" + playerName + "', 1);";
 				statement.executeUpdate(sql);
 				statement.close();
 				return true;
 			}
-		}
-		catch (SQLException e) {
+		} catch (SQLException e) {
 			return false;
-			}
-		catch (IOException e) {
+		} catch (IOException e) {
 			return false;
-			}
 		}
-	
-	public boolean lockPlayer(Player player)
-	{
+	}
+
+	public boolean lockPlayer(Player player) {
 		String playerName = player.getName().toLowerCase();
 		try {
 			Statement statement = DoSQL.connection.createStatement();
-			String sql = "UPDATE PlayerSQL "
-					+ "SET Locked = 1 "
+			String sql = "UPDATE PlayerSQL " + "SET Locked = 1 "
 					+ "WHERE PlayerName = '" + playerName + "';";
 			statement.executeUpdate(sql);
 			statement.close();
 			return true;
-		}
-		catch (SQLException e) {
+		} catch (SQLException e) {
 			return false;
-			}
 		}
-	
-	public boolean unlockPlayer(Player player)
-	{
+	}
+
+	public boolean unlockPlayer(Player player) {
 		String playerName = player.getName().toLowerCase();
 		try {
 			Statement statement = DoSQL.connection.createStatement();
-			String sql = "UPDATE PlayerSQL "
-					+ "SET Locked = 0 "
+			String sql = "UPDATE PlayerSQL " + "SET Locked = 0 "
 					+ "WHERE PlayerName = '" + playerName + "';";
 			statement.executeUpdate(sql);
 			statement.close();
 			return true;
-		}
-		catch (SQLException e) {
+		} catch (SQLException e) {
 			return false;
-			}
 		}
-	
-	public boolean lockAllPlayer()
-	{
+	}
+
+	public boolean lockAllPlayer() {
 		Plugin plugin = PlayerSQL.plugin;
-		Player[] players  = plugin.getServer().getOnlinePlayers();
+		Player[] players = plugin.getServer().getOnlinePlayers();
 		boolean b = true;
 		for (Player player : players) {
-			if(!lockPlayer(player)) {
+			if (!lockPlayer(player)) {
 				b = false;
-				plugin.getLogger().info("锁定玩家 "  + player.getName() + " 失败");
-				}
+				plugin.getLogger().info("锁定玩家 " + player.getName() + " 失败");
 			}
-		return b;
 		}
-	
-	public boolean saveAllPlayer()
-	{
+		return b;
+	}
+
+	public boolean saveAllPlayer() {
 		Plugin plugin = PlayerSQL.plugin;
-		Player[] players  = plugin.getServer().getOnlinePlayers();
+		Player[] players = plugin.getServer().getOnlinePlayers();
 		boolean b = true;
 		for (Player player : players) {
-			if(!savePlayer(player)) {
+			if (!savePlayer(player)) {
 				b = false;
-				plugin.getLogger().info("保存玩家 "  + player.getName() + " 失败");
-				}
+				plugin.getLogger().info("保存玩家 " + player.getName() + " 失败");
 			}
-		return b;
 		}
+		return b;
+	}
 
 	public void dailySavePlayer() {
 		final Plugin plugin = PlayerSQL.plugin;
 		if (plugin.getConfig().getBoolean("daily.use")) {
 			int delay = plugin.getConfig().getInt("daily.delay");
-			plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new DailySave(), 600, delay);
-			}
+			plugin.getServer()
+					.getScheduler()
+					.scheduleSyncRepeatingTask(plugin, new DailySave(), 600,
+							delay);
 		}
 	}
+}
 
-class DailySave implements Runnable
-{
+class DailySave implements Runnable {
 	DoPlayer doPlayer = new DoPlayer();
 	static int j = 0;
 	static Player[] players = null;
 
 	@Override
-	public void run()
-	{
+	public void run() {
 		listPlayer();
 		if (players != null) {
-			while (!players[j].isOnline() 
-					&& j < players.length) {
+			while (!players[j].isOnline() && j < players.length - 1) {
 				j = j + 1;
 			}
 			if (j < players.length) {
 				if (players[j].isOnline()) {
 					if (doPlayer.savePlayer(players[j])) {
-						Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "保存玩家 " + players[j].getName() + " 成功");
-						Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "进度 " + j + " / " + players.length);
-						}
-					else {
-						Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "保存玩家 " + players[j].getName() + " 失败");
-						Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "进度 " + j + " / " + players.length);
-						}
+						Bukkit.getConsoleSender().sendMessage(
+								ChatColor.GREEN + "保存玩家 "
+										+ players[j].getName() + " 成功");
+						Bukkit.getConsoleSender().sendMessage(
+								ChatColor.GREEN + "进度 " + j + " / "
+										+ players.length);
+					} else {
+						Bukkit.getConsoleSender().sendMessage(
+								ChatColor.RED + "保存玩家 " + players[j].getName()
+										+ " 失败");
+						Bukkit.getConsoleSender().sendMessage(
+								ChatColor.RED + "进度 " + j + " / "
+										+ players.length);
 					}
-				j = j + 1;
 				}
-			else {
+				j = j + 1;
+			} else {
 				j = 0;
 				players = null;
-				}
-			}
-		}
-	
-	void listPlayer() {
-		Plugin plugin = PlayerSQL.plugin;
-		int min = plugin.getConfig().getInt("daily.min");
-		if (plugin.getServer().getOnlinePlayers().length > min
-				&& j < 1) {
-				players = plugin.getServer().getOnlinePlayers();
-				if (players.length > 0) {
-					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "在线玩家: " + players.length + " 人");
-				}
 			}
 		}
 	}
+
+	void listPlayer() {
+		Plugin plugin = PlayerSQL.plugin;
+		int min = plugin.getConfig().getInt("daily.min");
+		if (plugin.getServer().getOnlinePlayers().length > min && j < 1) {
+			players = plugin.getServer().getOnlinePlayers();
+			if (players.length > 0) {
+				Bukkit.getConsoleSender().sendMessage(
+						ChatColor.GREEN + "在线玩家: " + players.length + " 人");
+			}
+		}
+	}
+}

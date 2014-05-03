@@ -12,16 +12,14 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class PlayerSQL extends JavaPlugin implements Listener
-{
+public class PlayerSQL extends JavaPlugin implements Listener {
 	public static Plugin plugin;
 	DoSQL doSQL = new DoSQL();
 	DoPlayer doPlayer = new DoPlayer();
 	DoCommand doCommand = new DoCommand();
-	
+
 	@Override
-	public void onEnable()
-	{
+	public void onEnable() {
 		saveDefaultConfig();
 		reloadConfig();
 		if (getConfig().getBoolean("use")) {
@@ -31,30 +29,29 @@ public class PlayerSQL extends JavaPlugin implements Listener
 				if (doSQL.createTables()) {
 					getServer().getPluginManager().registerEvents(this, this);
 					getLogger().info("数据表效验成功");
-					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "梦梦家高性能服务器出租");
-					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "淘宝店 http://shop105595113.taobao.com");
+					Bukkit.getConsoleSender().sendMessage(
+							ChatColor.GREEN + "梦梦家高性能服务器出租");
+					Bukkit.getConsoleSender().sendMessage(
+							ChatColor.GREEN
+									+ "淘宝店 http://shop105595113.taobao.com");
 					doPlayer.lockAllPlayer();
 					doPlayer.dailySavePlayer();
-				}
-				else {
+				} else {
 					getLogger().info("数据表效验失败");
 					setEnabled(false);
 				}
-			}
-			else {
+			} else {
 				getLogger().info("数据库连接失败");
 				setEnabled(false);
 			}
-		}
-		else {
+		} else {
 			getLogger().info("请在配置文件中启用插件");
 			setEnabled(false);
 		}
 	}
-	
+
 	@Override
-	public void onDisable()
-	{
+	public void onDisable() {
 		if (!getConfig().getBoolean("use")) {
 			return;
 		}
@@ -62,15 +59,15 @@ public class PlayerSQL extends JavaPlugin implements Listener
 			doPlayer.saveAllPlayer();
 			if (doSQL.closeConnect()) {
 				getLogger().info("关闭数据库连接成功");
-				}
-				else {
-					getLogger().info("关闭数据库连接失败");
-					}
+			} else {
+				getLogger().info("关闭数据库连接失败");
+			}
 		}
 		Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "高性能服务器出租");
-		Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "淘宝店 http://shop105595113.taobao.com");
-		}
-	
+		Bukkit.getConsoleSender().sendMessage(
+				ChatColor.GREEN + "淘宝店 http://shop105595113.taobao.com");
+	}
+
 	@Override
 	public boolean onCommand(CommandSender sender, Command command,
 			String label, String[] args) {
@@ -82,7 +79,7 @@ public class PlayerSQL extends JavaPlugin implements Listener
 		}
 		return false;
 	}
-	
+
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
@@ -90,31 +87,33 @@ public class PlayerSQL extends JavaPlugin implements Listener
 			getLogger().info("保存玩家 " + player.getName() + " 成功");
 			if (!doPlayer.unlockPlayer(player)) {
 				getLogger().info("解锁玩家 " + player.getName() + " 失败");
-				}
 			}
-		else {
+		} else {
 			getLogger().info("保存玩家 " + player.getName() + " 失败");
-			}
+		}
 	}
-	
+
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		final Player player = event.getPlayer();
-		getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-			@Override
-			public void run() {
-				if (doPlayer.loadPlayer(player)) {
-					getLogger().info("载入玩家 " + player.getName() + " 成功");
-					if (!doPlayer.lockPlayer(player)) {
-						getLogger().info("锁定玩家 " + player.getName() + " 失败");
+		getServer().getScheduler().scheduleSyncDelayedTask(plugin,
+				new Runnable() {
+					@Override
+					public void run() {
+						if (doPlayer.loadPlayer(player)) {
+							getLogger()
+									.info("载入玩家 " + player.getName() + " 成功");
+							if (!doPlayer.lockPlayer(player)) {
+								getLogger().info(
+										"锁定玩家 " + player.getName() + " 失败");
+							}
+						} else {
+							player.sendMessage("自动载入玩家失败");
+							player.sendMessage("请联系管理员");
+							getLogger()
+									.info("载入玩家 " + player.getName() + " 失败");
 						}
 					}
-				else {
-					player.sendMessage("自动载入玩家失败");
-					player.sendMessage("请联系管理员");
-					getLogger().info("载入玩家 " + player.getName() + " 失败");
-					}
-			}
-		}, getConfig().getInt("delay"));
+				}, getConfig().getInt("delay"));
 	}
 }

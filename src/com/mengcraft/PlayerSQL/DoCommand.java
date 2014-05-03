@@ -19,29 +19,25 @@ public class DoCommand {
 			}
 			if (args.length < 2) {
 				if (args[0].equals("save")) {
-					if (doPlayer.savePlayer((Player)sender)) {
+					if (doPlayer.savePlayer((Player) sender)) {
 						sender.sendMessage("保存玩家数据成功");
 						return true;
-					}
-					else {
+					} else {
 						sender.sendMessage("保存玩家数据失败");
 						return true;
 					}
-				}
-				else {
+				} else {
 					sender.sendMessage("/player save");
 					return true;
 				}
-			}
-			else {
+			} else {
 				sender.sendMessage("/player save");
 				return true;
 			}
-		}
-		else {
+		} else {
 			sender.sendMessage("无法执行命令");
 			return true;
-			}
+		}
 	}
 
 	public boolean onPlayeradmin(CommandSender sender, String[] args) {
@@ -58,18 +54,15 @@ public class DoCommand {
 				if (doPlayer.saveAllPlayer()) {
 					sender.sendMessage("保存在线玩家数据成功");
 					return true;
-				}
-				else {
+				} else {
 					sender.sendMessage("保存在线玩家数据失败");
 					return true;
 				}
-			}
-			else {
+			} else {
 				sender.sendMessage("/playeradmin save-all");
 				return true;
 			}
-		}
-		else {
+		} else {
 			sender.sendMessage("/playeradmin save-all");
 			return true;
 		}
