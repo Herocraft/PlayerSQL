@@ -13,10 +13,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import com.comphenix.protocol.utility.StreamSerializer;
 
-public class DoPlayer {
-	static DailySaveThread dailySaveThread;
-
-	public Boolean savePlayer(Player player) {
+public class DoPlayer
+{
+	public Boolean savePlayer(Player player)
+	{
 		String playerName = player.getName().toLowerCase();
 		double health = player.getHealth();
 		int food = player.getFoodLevel();
@@ -33,9 +33,9 @@ public class DoPlayer {
 			}
 			if (armorStacks[i] != null) {
 				try {
-					armorDataBuilder.append(StreamSerializer.getDefault()
-							.serializeItemStack(armorStacks[i]));
-				} catch (IOException e) {
+					armorDataBuilder.append(StreamSerializer.getDefault().serializeItemStack(armorStacks[i]));
+				}
+				catch (IOException e) {
 					return false;
 				}
 			}
@@ -50,9 +50,9 @@ public class DoPlayer {
 			}
 			if (inventoryStacks[i] != null) {
 				try {
-					inventoryDataBuilder.append(StreamSerializer.getDefault()
-							.serializeItemStack(inventoryStacks[i]));
-				} catch (IOException e) {
+					inventoryDataBuilder.append(StreamSerializer.getDefault().serializeItemStack(inventoryStacks[i]));
+				}
+				catch (IOException e) {
 					return false;
 				}
 			}
@@ -67,9 +67,9 @@ public class DoPlayer {
 			}
 			if (inventoryStacks[i] != null) {
 				try {
-					enderChestDataBuilder.append(StreamSerializer.getDefault()
-							.serializeItemStack(enderChestStacks[i]));
-				} catch (IOException e) {
+					enderChestDataBuilder.append(StreamSerializer.getDefault().serializeItemStack(enderChestStacks[i]));
+				}
+				catch (IOException e) {
 					return false;
 				}
 			}
@@ -78,34 +78,29 @@ public class DoPlayer {
 
 		try {
 			Statement statement = DoSQL.connection.createStatement();
-			String sql = "UPDATE PlayerSQL " + "SET " + "Health = " + health
-					+ ", Food = " + food + ", " + "Level = " + level + ", "
-					+ "Exp = " + Float.toString(exp) + ", " + "Armor = '"
-					+ armorData + "', " + "Inventory = '" + inventoryData
-					+ "', " + "EnderChest = '" + enderChestData + "' "
-					+ "WHERE PlayerName = '" + playerName + "';";
+			String sql = "UPDATE PlayerSQL " + "SET " + "Health = " + health + ", Food = " + food + ", " + "Level = " + level + ", " + "Exp = "
+					+ Float.toString(exp) + ", " + "Armor = '" + armorData + "', " + "Inventory = '" + inventoryData + "', " + "EnderChest = '"
+					+ enderChestData + "' " + "WHERE PlayerName = '" + playerName + "';";
 			statement.executeUpdate(sql);
 			statement.close();
 			return true;
-		} catch (SQLException e) {
+		}
+		catch (SQLException e) {
 			return false;
 		}
 	}
 
-	public boolean loadPlayer(Player player) {
+	public boolean loadPlayer(Player player)
+	{
 		String playerName = player.getName().toLowerCase();
 		try {
 			Statement statement = DoSQL.connection.createStatement();
-			String sql = "SELECT Locked, Health, Food, Level, Exp, Armor, Inventory, EnderChest "
-					+ "FROM PlayerSQL "
-					+ "WHERE PlayerName = '"
-					+ playerName
+			String sql = "SELECT Locked, Health, Food, Level, Exp, Armor, Inventory, EnderChest " + "FROM PlayerSQL " + "WHERE PlayerName = '" + playerName
 					+ "';";
 			ResultSet resultSet = statement.executeQuery(sql);
 			if (resultSet.last()) {
 				if (resultSet.getInt(1) > 0) {
-					Bukkit.getConsoleSender().sendMessage(
-							ChatColor.RED + "玩家数据锁状态有误");
+					Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "玩家数据锁状态有误");
 				}
 				double health = resultSet.getDouble(2);
 				int food = resultSet.getInt(3);
@@ -130,9 +125,9 @@ public class DoPlayer {
 				ItemStack[] armorStacks = new ItemStack[armorItems.length];
 				for (int i = 0; i < armorStacks.length; i++) {
 					if (!armorItems[i].equals("")) {
-						armorStacks[i] = StreamSerializer.getDefault()
-								.deserializeItemStack(armorItems[i]);
-					} else {
+						armorStacks[i] = StreamSerializer.getDefault().deserializeItemStack(armorItems[i]);
+					}
+					else {
 						continue;
 					}
 				}
@@ -145,9 +140,9 @@ public class DoPlayer {
 				ItemStack[] inventoryStacks = new ItemStack[inventory.getSize()];
 				for (int i = 0; i < inventoryItems.length; i++) {
 					if (!inventoryItems[i].equals("")) {
-						inventoryStacks[i] = StreamSerializer.getDefault()
-								.deserializeItemStack(inventoryItems[i]);
-					} else {
+						inventoryStacks[i] = StreamSerializer.getDefault().deserializeItemStack(inventoryItems[i]);
+					}
+					else {
 						continue;
 					}
 				}
@@ -157,149 +152,101 @@ public class DoPlayer {
 					return true;
 				}
 				String[] enderChestItems = enderChestData.split(";");
-				ItemStack[] enderChestStacks = new ItemStack[enderChest
-						.getSize()];
+				ItemStack[] enderChestStacks = new ItemStack[enderChest.getSize()];
 				for (int i = 0; i < enderChestItems.length; i++) {
 					if (!enderChestItems[i].equals("")) {
-						enderChestStacks[i] = StreamSerializer.getDefault()
-								.deserializeItemStack(enderChestItems[i]);
-					} else {
+						enderChestStacks[i] = StreamSerializer.getDefault().deserializeItemStack(enderChestItems[i]);
+					}
+					else {
 						continue;
 					}
 				}
 				enderChest.setContents(enderChestStacks);
 				statement.close();
 				return true;
-			} else {
-				sql = "INSERT INTO PlayerSQL " + "(PlayerName, Locked) "
-						+ "VALUES ('" + playerName + "', 1);";
+			}
+			else {
+				sql = "INSERT INTO PlayerSQL " + "(PlayerName, Locked) " + "VALUES ('" + playerName + "', 1);";
 				statement.executeUpdate(sql);
 				statement.close();
 				return true;
 			}
-		} catch (SQLException e) {
+		}
+		catch (SQLException e) {
 			return false;
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			return false;
 		}
 	}
 
-	public boolean lockPlayer(Player player) {
+	public boolean lockPlayer(Player player)
+	{
 		String playerName = player.getName().toLowerCase();
 		try {
 			Statement statement = DoSQL.connection.createStatement();
-			String sql = "UPDATE PlayerSQL " + "SET Locked = 1 "
-					+ "WHERE PlayerName = '" + playerName + "';";
+			String sql = "UPDATE PlayerSQL " + "SET Locked = 1 " + "WHERE PlayerName = '" + playerName + "';";
 			statement.executeUpdate(sql);
 			statement.close();
 			return true;
-		} catch (SQLException e) {
+		}
+		catch (SQLException e) {
 			return false;
 		}
 	}
 
-	public boolean unlockPlayer(Player player) {
+	public boolean unlockPlayer(Player player)
+	{
 		String playerName = player.getName().toLowerCase();
 		try {
 			Statement statement = DoSQL.connection.createStatement();
-			String sql = "UPDATE PlayerSQL " + "SET Locked = 0 "
-					+ "WHERE PlayerName = '" + playerName + "';";
+			String sql = "UPDATE PlayerSQL " + "SET Locked = 0 " + "WHERE PlayerName = '" + playerName + "';";
 			statement.executeUpdate(sql);
 			statement.close();
 			return true;
-		} catch (SQLException e) {
+		}
+		catch (SQLException e) {
 			return false;
 		}
 	}
 
-	public boolean lockAllPlayer() {
+	public boolean lockAllPlayer()
+	{
 		Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
 		boolean b = true;
 		for (Player player : players) {
 			if (!lockPlayer(player)) {
 				b = false;
-				PlayerSQL.plugin.getLogger().info(
-						"锁定玩家 " + player.getName() + " 失败");
+				PlayerSQL.plugin.getLogger().info("锁定玩家 " + player.getName() + " 失败");
 			}
 		}
 		return b;
 	}
 
-	public boolean unlockAllPlayer() {
+	public boolean unlockAllPlayer()
+	{
 		Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
 		boolean b = true;
 		for (Player player : players) {
 			if (!unlockPlayer(player)) {
 				b = false;
-				PlayerSQL.plugin.getLogger().info(
-						"解锁玩家 " + player.getName() + " 失败");
+				PlayerSQL.plugin.getLogger().info("解锁玩家 " + player.getName() + " 失败");
 			}
 		}
 		return b;
 	}
 
-	public boolean saveAllPlayer() {
+	public boolean saveAllPlayer()
+	{
 		Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
 		boolean b = true;
 		for (Player player : players) {
 			if (!savePlayer(player)) {
 				b = false;
-				PlayerSQL.plugin.getLogger().info(
-						"保存玩家 " + player.getName() + " 失败");
+				PlayerSQL.plugin.getLogger().info("保存玩家 " + player.getName() + " 失败");
 			}
 		}
 		return b;
 	}
 
-	public void dailySavePlayer() {
-		if (PlayerSQL.plugin.getConfig().getBoolean("daily.use")) {
-			dailySaveThread = new DailySaveThread();
-			dailySaveThread.start();
-		}
-	}
-}
-
-class DailySaveThread extends Thread {
-	DoPlayer doPlayer = new DoPlayer();
-
-	@Override
-	public void run() {
-		int delay = PlayerSQL.plugin.getConfig().getInt("daily.delay");
-		int min = PlayerSQL.plugin.getConfig().getInt("daily.min");
-		Player[] players;
-
-		while (true) {
-			try {
-				Thread.sleep(delay * 250);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-
-			players = PlayerSQL.plugin.getServer().getOnlinePlayers();
-			if (players.length > min) {
-				Bukkit.getConsoleSender().sendMessage(
-						ChatColor.GREEN + "开始保存在线玩家: " + players.length + " 人");
-				for (int i = 0; i < players.length; i++) {
-					if (!players[i].isOnline()) {
-						continue;
-					}
-					try {
-						Thread.sleep(delay * 50);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					if (doPlayer.savePlayer(players[i])) {
-						Bukkit.getConsoleSender().sendMessage(
-								ChatColor.GREEN + "保存玩家 "
-										+ players[i].getName() + " 成功");
-						Bukkit.getConsoleSender().sendMessage(
-								ChatColor.GREEN + "进度 " + (i + 1) + " / "
-										+ players.length);
-					}
-				}
-				Bukkit.getConsoleSender().sendMessage(
-						ChatColor.GREEN + "保存在线玩家: " + players.length + " 人完毕");
-			}
-		}
-	}
 }

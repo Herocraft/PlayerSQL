@@ -3,10 +3,12 @@ package com.mengcraft.PlayerSQL;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class DoCommand {
+public class DoCommand
+{
 	DoPlayer doPlayer = new DoPlayer();
 
-	public boolean onPlayer(CommandSender sender, String[] args) {
+	public boolean onPlayer(CommandSender sender, String[] args)
+	{
 		if (sender instanceof Player) {
 			if (!sender.hasPermission("playersql.use")) {
 				sender.sendMessage("你没有playersql.use权限");
@@ -22,25 +24,30 @@ public class DoCommand {
 					if (doPlayer.savePlayer((Player) sender)) {
 						sender.sendMessage("保存玩家数据成功");
 						return true;
-					} else {
+					}
+					else {
 						sender.sendMessage("保存玩家数据失败");
 						return true;
 					}
-				} else {
+				}
+				else {
 					sender.sendMessage("/player save");
 					return true;
 				}
-			} else {
+			}
+			else {
 				sender.sendMessage("/player save");
 				return true;
 			}
-		} else {
+		}
+		else {
 			sender.sendMessage("无法执行命令");
 			return true;
 		}
 	}
 
-	public boolean onPlayeradmin(CommandSender sender, String[] args) {
+	public boolean onPlayeradmin(CommandSender sender, String[] args)
+	{
 		if (!sender.hasPermission("playersql.admin")) {
 			sender.sendMessage("你没有playersql.admin权限");
 			return true;
@@ -54,15 +61,18 @@ public class DoCommand {
 				if (doPlayer.saveAllPlayer()) {
 					sender.sendMessage("保存在线玩家数据成功");
 					return true;
-				} else {
+				}
+				else {
 					sender.sendMessage("保存在线玩家数据失败");
 					return true;
 				}
-			} else {
+			}
+			else {
 				sender.sendMessage("/playeradmin save-all");
 				return true;
 			}
-		} else {
+		}
+		else {
 			sender.sendMessage("/playeradmin save-all");
 			return true;
 		}
