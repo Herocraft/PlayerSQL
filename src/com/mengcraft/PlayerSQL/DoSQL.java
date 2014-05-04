@@ -10,7 +10,7 @@ import org.bukkit.plugin.Plugin;
 public class DoSQL {
 	public static Connection connection;
 
-	String[] getSQLConfig() {
+	static String[] getSQLConfig() {
 		Plugin plugin = PlayerSQL.plugin;
 		String[] sqlConfig = { plugin.getConfig().getString("mysql.addr"),
 				plugin.getConfig().getString("mysql.port"),
@@ -20,7 +20,7 @@ public class DoSQL {
 		return sqlConfig;
 	}
 
-	Boolean getConnect() {
+	static Boolean getConnect() {
 		if (connection != null) {
 			try {
 				if (connection.isClosed()) {
@@ -37,7 +37,7 @@ public class DoSQL {
 		return false;
 	}
 
-	Boolean closeConnect() {
+	static Boolean closeConnect() {
 		if (getConnect()) {
 			try {
 				connection.close();
@@ -49,7 +49,7 @@ public class DoSQL {
 		return false;
 	}
 
-	Boolean openConnect() {
+	static Boolean openConnect() {
 		if (getConnect()) {
 			return true;
 		} else {
@@ -70,7 +70,7 @@ public class DoSQL {
 		}
 	}
 
-	Boolean createTables() {
+	static Boolean createTables() {
 		if (openConnect()) {
 			try {
 				Statement statement = connection.createStatement();

@@ -15,8 +15,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class PlayerSQL extends JavaPlugin implements Listener
 {
 	public static Plugin plugin;
-	private DoSQL doSQL = new DoSQL();
-	private DoPlayer doPlayer = new DoPlayer();
 	private DoCommand doCommand = new DoCommand();
 
 	@Override
@@ -26,9 +24,9 @@ public class PlayerSQL extends JavaPlugin implements Listener
 		saveDefaultConfig();
 		reloadConfig();
 		if (getConfig().getBoolean("use")) {
-			if (doSQL.openConnect()) {
+			if (DoSQL.openConnect()) {
 				getLogger().info("数据库连接成功");
-				if (doSQL.createTables()) {
+				if (DoSQL.createTables()) {
 					getServer().getPluginManager().registerEvents(this, this);
 					getLogger().info("数据表效验成功");
 					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "梦梦家高性能服务器出租");
@@ -38,7 +36,7 @@ public class PlayerSQL extends JavaPlugin implements Listener
 					getLogger().info("数据表效验失败");
 					setEnabled(false);
 				}
-				if (!doPlayer.lockAllPlayer()) {
+				if (!DoPlayer.lockAllPlayer()) {
 					getLogger().info("锁定在线玩家失败");
 				}
 				if (getConfig().getBoolean("daily.use")) {
@@ -63,11 +61,11 @@ public class PlayerSQL extends JavaPlugin implements Listener
 		if (!getConfig().getBoolean("use")) {
 			return;
 		}
-		if (doSQL.openConnect()) {
-			if (doPlayer.saveAllPlayer() && doPlayer.unlockAllPlayer()) {
+		if (DoSQL.openConnect()) {
+			if (DoPlayer.saveAllPlayer() && DoPlayer.unlockAllPlayer()) {
 				getLogger().info("保存在线玩家成功");
 			}
-			if (doSQL.closeConnect()) {
+			if (DoSQL.closeConnect()) {
 				getLogger().info("关闭数据库连接成功");
 			}
 			else {
@@ -84,10 +82,7 @@ public class PlayerSQL extends JavaPlugin implements Listener
 		if (command.getName().equalsIgnoreCase("player")) {
 			return doCommand.onPlayer(sender, args);
 		}
-		if (command.getName().equalsIgnoreCase("playeradmin")) {
-			return doCommand.onPlayeradmin(sender, args);
-		}
-		return false;
+		return true;
 	}
 
 	@EventHandler
@@ -108,7 +103,6 @@ public class PlayerSQL extends JavaPlugin implements Listener
 class PlayerQuitThread extends Thread
 {
 	private Player player;
-	DoPlayer doPlayer = new DoPlayer();
 	
 	public PlayerQuitThread(PlayerQuitEvent event)
 	{
@@ -119,9 +113,9 @@ class PlayerQuitThread extends Thread
 	public void run()
 	{
 		Plugin plugin = PlayerSQL.plugin;
-		if (doPlayer.savePlayer(player)) {
+		if (DoPlayer.savePlayer(player)) {
 			plugin.getLogger().info("保存玩家 " + player.getName() + " 成功");
-			if (!doPlayer.unlockPlayer(player)) {
+			if (!DoPlayer.unlockPlayer(player)) {
 				plugin.getLogger().info("解锁玩家 " + player.getName() + " 失败");
 			}
 		}
@@ -134,7 +128,6 @@ class PlayerQuitThread extends Thread
 class PlayerJoinThread extends Thread
 {
 	private Player player;
-	DoPlayer doPlayer = new DoPlayer();
 
 	public PlayerJoinThread(PlayerJoinEvent event)
 	{
@@ -150,9 +143,9 @@ class PlayerJoinThread extends Thread
 		catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		if (doPlayer.loadPlayer(player)) {
+		if (DoPlayer.loadPlayer(player)) {
 			PlayerSQL.plugin.getLogger().info("载入玩家 " + player.getName() + " 成功");
-			if (!doPlayer.lockPlayer(player)) {
+			if (!DoPlayer.lockPlayer(player)) {
 				PlayerSQL.plugin.getLogger().info("锁定玩家 " + player.getName() + " 失败");
 			}
 		}

@@ -5,17 +5,9 @@ commands:
     player:
         description:
         usage: 
-        permission: playersql.use
-        permission-message:
-    playeradmin:
-        description:
-        usage: 
         permission: playersql.admin
         permission-message:
 permissions:
-    playersql.use:
-        description: 
-        default: true
     playersql.admin:
         description: 
         default: op

@@ -15,7 +15,7 @@ import com.comphenix.protocol.utility.StreamSerializer;
 
 public class DoPlayer
 {
-	public Boolean savePlayer(Player player)
+	public static Boolean savePlayer(Player player)
 	{
 		String playerName = player.getName().toLowerCase();
 		double health = player.getHealth();
@@ -90,7 +90,7 @@ public class DoPlayer
 		}
 	}
 
-	public boolean loadPlayer(Player player)
+	public static boolean loadPlayer(Player player)
 	{
 		String playerName = player.getName().toLowerCase();
 		try {
@@ -180,7 +180,7 @@ public class DoPlayer
 		}
 	}
 
-	public boolean lockPlayer(Player player)
+	public static boolean lockPlayer(Player player)
 	{
 		String playerName = player.getName().toLowerCase();
 		try {
@@ -195,7 +195,7 @@ public class DoPlayer
 		}
 	}
 
-	public boolean unlockPlayer(Player player)
+	public static boolean unlockPlayer(Player player)
 	{
 		String playerName = player.getName().toLowerCase();
 		try {
@@ -210,7 +210,7 @@ public class DoPlayer
 		}
 	}
 
-	public boolean lockAllPlayer()
+	public static boolean lockAllPlayer()
 	{
 		Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
 		boolean b = true;
@@ -223,7 +223,7 @@ public class DoPlayer
 		return b;
 	}
 
-	public boolean unlockAllPlayer()
+	public static boolean unlockAllPlayer()
 	{
 		Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
 		boolean b = true;
@@ -236,7 +236,7 @@ public class DoPlayer
 		return b;
 	}
 
-	public boolean saveAllPlayer()
+	public static boolean saveAllPlayer()
 	{
 		Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
 		boolean b = true;
