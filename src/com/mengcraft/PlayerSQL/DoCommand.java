@@ -5,7 +5,6 @@ import org.bukkit.command.CommandSender;
 
 public class DoCommand
 {
-	DoPlayer doPlayer = new DoPlayer();
 
 	public boolean onPlayer(CommandSender sender, String[] args)
 	{
@@ -50,7 +49,6 @@ public class DoCommand
 				sender.sendMessage(ChatColor.GREEN + "保存在线玩家成功");
 			}
 		}
-
 	}
 
 }

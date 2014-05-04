@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 
 public class DailySaveThread extends Thread
 {
-	DoPlayer doPlayer = new DoPlayer();
 
 	@Override
 	public void run()
