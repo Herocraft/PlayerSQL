@@ -3,6 +3,7 @@ delay: 5
 
 daily:
   use: true
+  show: true
   delay: 240
   min: 5
   
