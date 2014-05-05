@@ -10,9 +10,9 @@ public class DailySaveThread extends Thread
 	@Override
 	public void run()
 	{
-		boolean show = PlayerSQL.plugin.getConfig().getBoolean("daily.show");
-		int delay = PlayerSQL.plugin.getConfig().getInt("daily.delay");
-		int min = PlayerSQL.plugin.getConfig().getInt("daily.min");
+		final boolean show = PlayerSQL.plugin.getConfig().getBoolean("daily.show");
+		final int delay = PlayerSQL.plugin.getConfig().getInt("daily.delay");
+		final int min = PlayerSQL.plugin.getConfig().getInt("daily.min");
 		Player[] players;
 
 		while (PlayerSQL.plugin.isEnabled()) {
@@ -34,8 +34,8 @@ public class DailySaveThread extends Thread
 						continue;
 					}
 					if (DoPlayer.savePlayer(players[i]) && show) {
-						Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "保存玩家 " + players[i].getName() + " 成功");
-						Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "进度 " + (i + 1) + " / " + players.length);
+							Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "保存玩家 " + players[i].getName() + " 成功");
+							Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "进度 " + (i + 1) + " / " + players.length);
 					}
 					try {
 						sleep(delay * 50);

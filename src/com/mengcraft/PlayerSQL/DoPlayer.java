@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+
 import com.comphenix.protocol.utility.StreamSerializer;
 
 public class DoPlayer
@@ -78,9 +79,10 @@ public class DoPlayer
 
 		try {
 			Statement statement = DoSQL.connection.createStatement();
-			String sql = "UPDATE PlayerSQL " + "SET " + "Health = " + health + ", Food = " + food + ", " + "Level = " + level + ", " + "Exp = "
-					+ Float.toString(exp) + ", " + "Armor = '" + armorData + "', " + "Inventory = '" + inventoryData + "', " + "EnderChest = '"
-					+ enderChestData + "' " + "WHERE PlayerName = '" + playerName + "';";
+			String sql = "UPDATE PlayerSQL " + "SET " + "Health = " + health + ", Food = " + food + ", " + "Level = "
+					+ level + ", " + "Exp = " + Float.toString(exp) + ", " + "Armor = '" + armorData + "', "
+					+ "Inventory = '" + inventoryData + "', " + "EnderChest = '" + enderChestData + "' "
+					+ "WHERE PlayerName = '" + playerName + "';";
 			statement.executeUpdate(sql);
 			statement.close();
 			return true;
@@ -94,13 +96,14 @@ public class DoPlayer
 	{
 		String playerName = player.getName().toLowerCase();
 		try {
+			String sql = "SELECT Locked, Health, Food, Level, Exp, Armor, Inventory, EnderChest "
+					+ "FROM PlayerSQL WHERE PlayerName = '" + playerName + "';";
 			Statement statement = DoSQL.connection.createStatement();
-			String sql = "SELECT Locked, Health, Food, Level, Exp, Armor, Inventory, EnderChest " + "FROM PlayerSQL " + "WHERE PlayerName = '" + playerName
-					+ "';";
 			ResultSet resultSet = statement.executeQuery(sql);
 			if (resultSet.last()) {
 				if (resultSet.getInt(1) > 0) {
 					Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "玩家数据锁状态有误");
+					player.sendMessage(ChatColor.RED + "玩家数据锁状态有误请通知管理员");
 				}
 				double health = resultSet.getDouble(2);
 				int food = resultSet.getInt(3);
@@ -162,12 +165,14 @@ public class DoPlayer
 					}
 				}
 				enderChest.setContents(enderChestStacks);
+				resultSet.close();
 				statement.close();
 				return true;
 			}
 			else {
 				sql = "INSERT INTO PlayerSQL " + "(PlayerName, Locked) " + "VALUES ('" + playerName + "', 1);";
 				statement.executeUpdate(sql);
+				resultSet.close();
 				statement.close();
 				return true;
 			}
