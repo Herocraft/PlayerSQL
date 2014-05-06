@@ -7,15 +7,55 @@ import java.sql.Statement;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-
 import com.comphenix.protocol.utility.StreamSerializer;
 
 public class DoPlayer
 {
+	static String buildStackData(ItemStack[] itemStacks)
+	{
+		StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 0; i < itemStacks.length; i++) {
+			if (i > 0) {
+				stringBuilder.append(";");
+			}
+			if (itemStacks[i] != null && itemStacks[i].getType() != Material.AIR) {
+				try {
+					stringBuilder.append(StreamSerializer.getDefault().serializeItemStack(itemStacks[i]));
+				}
+				catch (IOException e) {
+					continue;
+				}
+			}
+		}
+		String string = stringBuilder.toString();
+		return string;
+	}
+
+	static ItemStack[] restoreStackData(String string)
+	{
+		String[] strings = string.split(";");
+		ItemStack[] itemStacks = new ItemStack[strings.length];
+		for (int i = 0; i < strings.length; i++) {
+			if (!strings[i].equals("")) {
+				try {
+					itemStacks[i] = StreamSerializer.getDefault().deserializeItemStack(strings[i]);
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			else {
+				continue;
+			}
+		}
+		return itemStacks;
+	}
+
 	public static Boolean savePlayer(Player player)
 	{
 		String playerName = player.getName().toLowerCase();
@@ -26,63 +66,21 @@ public class DoPlayer
 		PlayerInventory inventory = player.getInventory();
 		Inventory enderChest = player.getEnderChest();
 
-		StringBuilder armorDataBuilder = new StringBuilder();
 		ItemStack[] armorStacks = inventory.getArmorContents();
-		for (int i = 0; i < armorStacks.length; i++) {
-			if (i > 0) {
-				armorDataBuilder.append(";");
-			}
-			if (armorStacks[i] != null) {
-				try {
-					armorDataBuilder.append(StreamSerializer.getDefault().serializeItemStack(armorStacks[i]));
-				}
-				catch (IOException e) {
-					return false;
-				}
-			}
-		}
-		String armorData = armorDataBuilder.toString();
+		String armorData = buildStackData(armorStacks);
 
-		StringBuilder inventoryDataBuilder = new StringBuilder();
 		ItemStack[] inventoryStacks = inventory.getContents();
-		for (int i = 0; i < inventory.getSize(); i++) {
-			if (i > 0) {
-				inventoryDataBuilder.append(";");
-			}
-			if (inventoryStacks[i] != null) {
-				try {
-					inventoryDataBuilder.append(StreamSerializer.getDefault().serializeItemStack(inventoryStacks[i]));
-				}
-				catch (IOException e) {
-					return false;
-				}
-			}
-		}
-		String inventoryData = inventoryDataBuilder.toString();
+		String inventoryData = buildStackData(inventoryStacks);
 
-		StringBuilder enderChestDataBuilder = new StringBuilder();
 		ItemStack[] enderChestStacks = enderChest.getContents();
-		for (int i = 0; i < enderChest.getSize(); i++) {
-			if (i > 0) {
-				enderChestDataBuilder.append(";");
-			}
-			if (inventoryStacks[i] != null) {
-				try {
-					enderChestDataBuilder.append(StreamSerializer.getDefault().serializeItemStack(enderChestStacks[i]));
-				}
-				catch (IOException e) {
-					return false;
-				}
-			}
-		}
-		String enderChestData = enderChestDataBuilder.toString();
+		String enderChestData = buildStackData(enderChestStacks);
 
 		try {
 			Statement statement = DoSQL.connection.createStatement();
-			String sql = "UPDATE PlayerSQL " + "SET " + "Health = " + health + ", Food = " + food + ", " + "Level = "
-					+ level + ", " + "Exp = " + Float.toString(exp) + ", " + "Armor = '" + armorData + "', "
-					+ "Inventory = '" + inventoryData + "', " + "EnderChest = '" + enderChestData + "' "
-					+ "WHERE PlayerName = '" + playerName + "';";
+			String sql = "UPDATE PlayerSQL " + "SET " + "Health = " + health + ", Food = " + food + ", " + "Level = " + level
+					+ ", " + "Exp = " + Float.toString(exp) + ", " + "Armor = '" + armorData + "', " + "Inventory = '"
+					+ inventoryData + "', " + "EnderChest = '" + enderChestData + "' " + "WHERE PlayerName = '" + playerName
+					+ "';";
 			statement.executeUpdate(sql);
 			statement.close();
 			return true;
@@ -124,47 +122,18 @@ public class DoPlayer
 				if (armorData == null) {
 					return true;
 				}
-				String[] armorItems = armorData.split(";");
-				ItemStack[] armorStacks = new ItemStack[armorItems.length];
-				for (int i = 0; i < armorStacks.length; i++) {
-					if (!armorItems[i].equals("")) {
-						armorStacks[i] = StreamSerializer.getDefault().deserializeItemStack(armorItems[i]);
-					}
-					else {
-						continue;
-					}
-				}
-				inventory.setArmorContents(armorStacks);
+				inventory.setArmorContents(restoreStackData(armorData));
 
 				if (inventoryData == null) {
 					return true;
 				}
-				String[] inventoryItems = inventoryData.split(";");
-				ItemStack[] inventoryStacks = new ItemStack[inventory.getSize()];
-				for (int i = 0; i < inventoryItems.length; i++) {
-					if (!inventoryItems[i].equals("")) {
-						inventoryStacks[i] = StreamSerializer.getDefault().deserializeItemStack(inventoryItems[i]);
-					}
-					else {
-						continue;
-					}
-				}
-				inventory.setContents(inventoryStacks);
+				inventory.setContents(restoreStackData(inventoryData));
 
 				if (enderChestData == null) {
 					return true;
 				}
-				String[] enderChestItems = enderChestData.split(";");
-				ItemStack[] enderChestStacks = new ItemStack[enderChest.getSize()];
-				for (int i = 0; i < enderChestItems.length; i++) {
-					if (!enderChestItems[i].equals("")) {
-						enderChestStacks[i] = StreamSerializer.getDefault().deserializeItemStack(enderChestItems[i]);
-					}
-					else {
-						continue;
-					}
-				}
-				enderChest.setContents(enderChestStacks);
+				enderChest.setContents(restoreStackData(enderChestData));
+
 				resultSet.close();
 				statement.close();
 				return true;
@@ -178,9 +147,6 @@ public class DoPlayer
 			}
 		}
 		catch (SQLException e) {
-			return false;
-		}
-		catch (IOException e) {
 			return false;
 		}
 	}
