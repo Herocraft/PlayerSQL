@@ -20,7 +20,7 @@ public class PTranslat
 
 	static void translat()
 	{
-		if (PlayerSQL.isEnglish) {
+		if (PlayerSQL.plugin.getConfig().getBoolean("english")) {
 			a = "Save all online players complate";
 			b = "Online: ";
 			c = " Players";

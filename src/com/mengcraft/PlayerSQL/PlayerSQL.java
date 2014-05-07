@@ -15,7 +15,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class PlayerSQL extends JavaPlugin implements Listener
 {
 	public static Plugin plugin;
-	public static boolean isEnglish;
 	private PCommand doCommand = new PCommand();
 
 	@Override
@@ -24,7 +23,6 @@ public class PlayerSQL extends JavaPlugin implements Listener
 		plugin = this;
 		saveDefaultConfig();
 		reloadConfig();
-		isEnglish = getConfig().getBoolean("english");
 		PTranslat.translat();
 		if (getConfig().getBoolean("use")) {
 			if (PSQL.openConnect()) {
