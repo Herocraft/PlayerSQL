@@ -14,7 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import com.comphenix.protocol.utility.StreamSerializer;
 
-public class DoPlayer
+public class PPlayer
 {
 	static String buildStackData(ItemStack[] itemStacks)
 	{
@@ -76,7 +76,7 @@ public class DoPlayer
 		String enderChestData = buildStackData(enderChestStacks);
 
 		try {
-			Statement statement = DoSQL.connection.createStatement();
+			Statement statement = PSQL.connection.createStatement();
 			String sql = "UPDATE PlayerSQL " + "SET " + "Health = " + health + ", Food = " + food + ", " + "Level = " + level
 					+ ", " + "Exp = " + Float.toString(exp) + ", " + "Armor = '" + armorData + "', " + "Inventory = '"
 					+ inventoryData + "', " + "EnderChest = '" + enderChestData + "' " + "WHERE PlayerName = '" + playerName
@@ -96,7 +96,7 @@ public class DoPlayer
 		try {
 			String sql = "SELECT Locked, Health, Food, Level, Exp, Armor, Inventory, EnderChest "
 					+ "FROM PlayerSQL WHERE PlayerName = '" + playerName + "';";
-			Statement statement = DoSQL.connection.createStatement();
+			Statement statement = PSQL.connection.createStatement();
 			ResultSet resultSet = statement.executeQuery(sql);
 			if (resultSet.last()) {
 				if (resultSet.getInt(1) > 0) {
@@ -155,7 +155,7 @@ public class DoPlayer
 	{
 		String playerName = player.getName().toLowerCase();
 		try {
-			Statement statement = DoSQL.connection.createStatement();
+			Statement statement = PSQL.connection.createStatement();
 			String sql = "UPDATE PlayerSQL " + "SET Locked = 1 " + "WHERE PlayerName = '" + playerName + "';";
 			statement.executeUpdate(sql);
 			statement.close();
@@ -170,7 +170,7 @@ public class DoPlayer
 	{
 		String playerName = player.getName().toLowerCase();
 		try {
-			Statement statement = DoSQL.connection.createStatement();
+			Statement statement = PSQL.connection.createStatement();
 			String sql = "UPDATE PlayerSQL " + "SET Locked = 0 " + "WHERE PlayerName = '" + playerName + "';";
 			statement.executeUpdate(sql);
 			statement.close();

@@ -1,4 +1,6 @@
 use: false
+english: false
+
 delay: 5
 
 daily:

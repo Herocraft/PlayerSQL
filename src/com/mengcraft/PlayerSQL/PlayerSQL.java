@@ -15,7 +15,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class PlayerSQL extends JavaPlugin implements Listener
 {
 	public static Plugin plugin;
-	private DoCommand doCommand = new DoCommand();
+	public static boolean isEnglish;
+	private PCommand doCommand = new PCommand();
 
 	@Override
 	public void onEnable()
@@ -23,34 +24,36 @@ public class PlayerSQL extends JavaPlugin implements Listener
 		plugin = this;
 		saveDefaultConfig();
 		reloadConfig();
+		isEnglish = getConfig().getBoolean("english");
+		PTranslat.translat();
 		if (getConfig().getBoolean("use")) {
-			if (DoSQL.openConnect()) {
-				getLogger().info("数据库连接成功");
-				if (DoSQL.createTables()) {
+			if (PSQL.openConnect()) {
+				getLogger().info(PTranslat.i);
+				if (PSQL.createTables()) {
 					getServer().getPluginManager().registerEvents(this, this);
-					getLogger().info("数据表效验成功");
-					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "梦梦家高性能服务器出租");
-					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "淘宝店 http://shop105595113.taobao.com");
+					getLogger().info(PTranslat.j);
+					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTranslat.k);
+					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTranslat.l);
 				}
 				else {
 					getLogger().info("数据表效验失败");
 					setEnabled(false);
 				}
-				if (!DoPlayer.lockAllPlayer()) {
+				if (!PPlayer.lockAllPlayer()) {
 					getLogger().info("锁定在线玩家失败");
 				}
 				if (getConfig().getBoolean("daily.use")) {
-					DailySaveThread dailySaveThread = new DailySaveThread();
+					DSThread dailySaveThread = new DSThread();
 					dailySaveThread.start();
 				}
 			}
 			else {
-				getLogger().info("数据库连接失败");
+				getLogger().info(PTranslat.m);
 				setEnabled(false);
 			}
 		}
 		else {
-			getLogger().info("请在配置文件中启用插件");
+			getLogger().info(PTranslat.n);
 			setEnabled(false);
 		}
 	}
@@ -61,11 +64,11 @@ public class PlayerSQL extends JavaPlugin implements Listener
 		if (!getConfig().getBoolean("use")) {
 			return;
 		}
-		if (DoSQL.openConnect()) {
-			if (DoPlayer.saveAllPlayer() && DoPlayer.unlockAllPlayer()) {
-				getLogger().info("保存在线玩家成功");
+		if (PSQL.openConnect()) {
+			if (PPlayer.saveAllPlayer() && PPlayer.unlockAllPlayer()) {
+				getLogger().info(PTranslat.a);
 			}
-			if (DoSQL.closeConnect()) {
+			if (PSQL.closeConnect()) {
 				getLogger().info("关闭数据库连接成功");
 			}
 			else {
@@ -103,7 +106,7 @@ public class PlayerSQL extends JavaPlugin implements Listener
 class PlayerQuitThread extends Thread
 {
 	private Player player;
-	
+
 	public PlayerQuitThread(PlayerQuitEvent event)
 	{
 		player = event.getPlayer();
@@ -113,14 +116,14 @@ class PlayerQuitThread extends Thread
 	public void run()
 	{
 		Plugin plugin = PlayerSQL.plugin;
-		if (DoPlayer.savePlayer(player)) {
-			plugin.getLogger().info("保存玩家 " + player.getName() + " 成功");
-			if (!DoPlayer.unlockPlayer(player)) {
-				plugin.getLogger().info("解锁玩家 " + player.getName() + " 失败");
+		if (PPlayer.savePlayer(player)) {
+			plugin.getLogger().info(PTranslat.d + player.getName() + PTranslat.f);
+			if (!PPlayer.unlockPlayer(player)) {
+				plugin.getLogger().info("解锁玩家 " + player.getName() + PTranslat.g);
 			}
 		}
 		else {
-			plugin.getLogger().info("保存玩家 " + player.getName() + " 失败");
+			plugin.getLogger().info(PTranslat.d + player.getName() + PTranslat.g);
 		}
 	}
 }
@@ -143,16 +146,16 @@ class PlayerJoinThread extends Thread
 		catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		if (DoPlayer.loadPlayer(player)) {
-			PlayerSQL.plugin.getLogger().info("载入玩家 " + player.getName() + " 成功");
-			if (!DoPlayer.lockPlayer(player)) {
-				PlayerSQL.plugin.getLogger().info("锁定玩家 " + player.getName() + " 失败");
+		if (PPlayer.loadPlayer(player)) {
+			PlayerSQL.plugin.getLogger().info(PTranslat.e + player.getName() + PTranslat.f);
+			if (!PPlayer.lockPlayer(player)) {
+				PlayerSQL.plugin.getLogger().info("锁定玩家 " + player.getName() + PTranslat.g);
 			}
 		}
 		else {
 			player.sendMessage("自动载入玩家失败");
 			player.sendMessage("请联系管理员");
-			PlayerSQL.plugin.getLogger().info("载入玩家 " + player.getName() + " 失败");
+			PlayerSQL.plugin.getLogger().info(PTranslat.e + player.getName() + PTranslat.g);
 		}
 	}
 

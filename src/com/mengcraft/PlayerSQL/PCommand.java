@@ -3,13 +3,13 @@ package com.mengcraft.PlayerSQL;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-public class DoCommand
+public class PCommand
 {
 
 	public boolean onPlayer(CommandSender sender, String[] args)
 	{
 		if (!sender.hasPermission("playersql.admin")) {
-			sender.sendMessage("你没有playersql.admin权限");
+			sender.sendMessage(PTranslat.h);
 			return true;
 		}
 		if (args.length < 1) {
@@ -45,8 +45,8 @@ public class DoCommand
 		@Override
 		public void run()
 		{
-			if (DoPlayer.saveAllPlayer()) {
-				sender.sendMessage(ChatColor.GREEN + "保存在线玩家成功");
+			if (PPlayer.saveAllPlayer()) {
+				sender.sendMessage(ChatColor.GREEN + PTranslat.a);
 			}
 		}
 	}

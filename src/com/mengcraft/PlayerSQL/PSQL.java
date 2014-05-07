@@ -7,7 +7,7 @@ import java.sql.Statement;
 
 import org.bukkit.plugin.Plugin;
 
-public class DoSQL {
+public class PSQL {
 	public static Connection connection;
 
 	static String[] getSQLConfig() {

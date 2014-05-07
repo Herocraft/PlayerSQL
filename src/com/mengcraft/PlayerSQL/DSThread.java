@@ -4,7 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-public class DailySaveThread extends Thread
+public class DSThread extends Thread
 {
 
 	@Override
@@ -23,19 +23,19 @@ public class DailySaveThread extends Thread
 				e.printStackTrace();
 			}
 			if (!PlayerSQL.plugin.isEnabled()) {
-				Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "保存在线玩家结束");
+				Bukkit.getConsoleSender().sendMessage(ChatColor.RED + PTranslat.a);
 				return;
 			}
 			players = PlayerSQL.plugin.getServer().getOnlinePlayers();
 			if (players.length > min) {
-				Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "开始保存在线玩家: " + players.length + " 人");
+				Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTranslat.b + players.length + PTranslat.c);
 				for (int i = 0; i < players.length; i++) {
 					if (!players[i].isOnline()) {
 						continue;
 					}
-					if (DoPlayer.savePlayer(players[i]) && show) {
-							Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "保存玩家 " + players[i].getName() + " 成功");
-							Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "进度 " + (i + 1) + " / " + players.length);
+					if (PPlayer.savePlayer(players[i]) && show) {
+						Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTranslat.d + players[i].getName() + PTranslat.f);
+						Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTranslat.o + (i + 1) + " / " + players.length);
 					}
 					try {
 						sleep(delay * 50);
@@ -44,7 +44,7 @@ public class DailySaveThread extends Thread
 						e.printStackTrace();
 					}
 					if (!PlayerSQL.plugin.isEnabled()) {
-						Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "保存在线玩家结束");
+						Bukkit.getConsoleSender().sendMessage(ChatColor.RED + PTranslat.a);
 						return;
 					}
 				}
