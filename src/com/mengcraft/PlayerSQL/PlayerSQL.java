@@ -22,7 +22,6 @@ public class PlayerSQL extends JavaPlugin implements Listener
 	{
 		plugin = this;
 		saveDefaultConfig();
-		reloadConfig();
 		PTranslat.translat();
 		if (getConfig().getBoolean("use")) {
 			if (PSQL.openConnect()) {

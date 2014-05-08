@@ -7,52 +7,61 @@ import java.sql.Statement;
 
 import org.bukkit.plugin.Plugin;
 
-public class PSQL {
+public class PSQL
+{
 	public static Connection connection;
 
-	static String[] getSQLConfig() {
+	static String[] getSQLConfig()
+	{
 		Plugin plugin = PlayerSQL.plugin;
-		String[] sqlConfig = { plugin.getConfig().getString("mysql.addr"),
-				plugin.getConfig().getString("mysql.port"),
-				plugin.getConfig().getString("mysql.data"),
-				plugin.getConfig().getString("mysql.user"),
+		String[] sqlConfig = { plugin.getConfig().getString("mysql.addr"), plugin.getConfig().getString("mysql.port"),
+				plugin.getConfig().getString("mysql.data"), plugin.getConfig().getString("mysql.user"),
 				plugin.getConfig().getString("mysql.pass") };
 		return sqlConfig;
 	}
 
-	static Boolean getConnect() {
+	static Boolean getConnect()
+	{
 		if (connection != null) {
 			try {
 				if (connection.isClosed()) {
 					connection = null;
 					return false;
-				} else {
+				}
+				else {
 					return true;
 				}
-			} catch (SQLException e) {
 			}
-		} else {
+			catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		else {
 			return false;
 		}
 		return false;
 	}
 
-	static Boolean closeConnect() {
+	static Boolean closeConnect()
+	{
 		if (getConnect()) {
 			try {
 				connection.close();
 				return true;
-			} catch (SQLException e) {
-				return false;
+			}
+			catch (SQLException e) {
+				e.printStackTrace();
 			}
 		}
 		return false;
 	}
 
-	static Boolean openConnect() {
+	static Boolean openConnect()
+	{
 		if (getConnect()) {
 			return true;
-		} else {
+		}
+		else {
 			String[] sqlConfig = getSQLConfig();
 			String addr = sqlConfig[0];
 			String port = sqlConfig[1];
@@ -61,33 +70,36 @@ public class PSQL {
 			String pass = sqlConfig[4];
 			try {
 				Class.forName("com.mysql.jdbc.Driver");
-				connection = DriverManager.getConnection("jdbc:mysql://" + addr
-						+ ":" + port + "/" + data, user, pass);
+				connection = DriverManager.getConnection("jdbc:mysql://" + addr + ":" + port + "/" + data, user, pass);
 				return true;
-			} catch (Exception e) {
-				return false;
+			}
+			catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+			catch (SQLException e) {
+				e.printStackTrace();
 			}
 		}
+		return false;
 	}
 
-	static Boolean createTables() {
+	static Boolean createTables()
+	{
 		if (openConnect()) {
 			try {
 				Statement statement = connection.createStatement();
-				String sql = "CREATE TABLE IF NOT EXISTS " + "PlayerSQL ("
-						+ "Id int NOT NULL AUTO_INCREMENT, "
-						+ "PlayerName text, " + "Locked int NOT NULL, "
-						+ "Health int, " + "Food int, " + "Level int, "
-						+ "Exp text, " + "Armor text, " + "Inventory text, "
-						+ "EnderChest text, " + "PRIMARY KEY (Id));";
+				String sql = "CREATE TABLE IF NOT EXISTS " + "PlayerSQL (" + "Id int NOT NULL AUTO_INCREMENT, "
+						+ "PlayerName text, " + "Locked int NOT NULL, " + "Health int, " + "Food int, " + "Level int, "
+						+ "Exp text, " + "Armor text, " + "Inventory text, " + "EnderChest text, " + "PRIMARY KEY (Id));";
 				statement.executeUpdate(sql);
 				statement.close();
 				return true;
-			} catch (SQLException e) {
-				return false;
+			}
+			catch (SQLException e) {
+				e.printStackTrace();
 			}
 		}
-		return null;
+		return false;
 	}
 
 }

@@ -98,7 +98,7 @@ public class PPlayer
 					+ "FROM PlayerSQL WHERE PlayerName = '" + playerName + "';";
 			Statement statement = PSQL.connection.createStatement();
 			ResultSet resultSet = statement.executeQuery(sql);
-			if (resultSet.last()) {
+			if (resultSet.next()) {
 				if (resultSet.getInt(1) > 0) {
 					Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "玩家数据锁状态有误");
 					player.sendMessage(ChatColor.RED + "玩家数据锁状态有误请通知管理员");
