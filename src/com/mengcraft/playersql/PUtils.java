@@ -1,4 +1,4 @@
-package com.mengcraft.PlayerSQL;
+package com.mengcraft.playersql;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -14,7 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import com.comphenix.protocol.utility.StreamSerializer;
 
-public class PPlayer
+public class PUtils
 {
 	static String buildStackData(ItemStack[] itemStacks)
 	{
@@ -76,7 +76,7 @@ public class PPlayer
 		String enderChestData = buildStackData(enderChestStacks);
 
 		try {
-			Statement statement = PSQL.connection.createStatement();
+			Statement statement = SQLUtils.connection.createStatement();
 			String sql = "UPDATE PlayerSQL " + "SET " + "Health = " + health + ", Food = " + food + ", " + "Level = " + level
 					+ ", " + "Exp = " + Float.toString(exp) + ", " + "Armor = '" + armorData + "', " + "Inventory = '"
 					+ inventoryData + "', " + "EnderChest = '" + enderChestData + "' " + "WHERE PlayerName = '" + playerName
@@ -93,10 +93,10 @@ public class PPlayer
 	public static boolean loadPlayer(Player player)
 	{
 		String playerName = player.getName().toLowerCase();
+		String sql = "SELECT Locked, Health, Food, Level, Exp, Armor, Inventory, EnderChest "
+				+ "FROM PlayerSQL WHERE PlayerName = '" + playerName + "';";
 		try {
-			String sql = "SELECT Locked, Health, Food, Level, Exp, Armor, Inventory, EnderChest "
-					+ "FROM PlayerSQL WHERE PlayerName = '" + playerName + "';";
-			Statement statement = PSQL.connection.createStatement();
+			Statement statement = SQLUtils.connection.createStatement();
 			ResultSet resultSet = statement.executeQuery(sql);
 			if (resultSet.next()) {
 				if (resultSet.getInt(1) > 0) {
@@ -139,7 +139,7 @@ public class PPlayer
 				return true;
 			}
 			else {
-				sql = "INSERT INTO PlayerSQL " + "(PlayerName, Locked) " + "VALUES ('" + playerName + "', 1);";
+				sql = "INSERT INTO PlayerSQL " + "(PlayerName) " + "VALUES ('" + playerName + "');";
 				statement.executeUpdate(sql);
 				resultSet.close();
 				statement.close();
@@ -155,7 +155,7 @@ public class PPlayer
 	{
 		String playerName = player.getName().toLowerCase();
 		try {
-			Statement statement = PSQL.connection.createStatement();
+			Statement statement = SQLUtils.connection.createStatement();
 			String sql = "UPDATE PlayerSQL " + "SET Locked = 1 " + "WHERE PlayerName = '" + playerName + "';";
 			statement.executeUpdate(sql);
 			statement.close();
@@ -170,7 +170,7 @@ public class PPlayer
 	{
 		String playerName = player.getName().toLowerCase();
 		try {
-			Statement statement = PSQL.connection.createStatement();
+			Statement statement = SQLUtils.connection.createStatement();
 			String sql = "UPDATE PlayerSQL " + "SET Locked = 0 " + "WHERE PlayerName = '" + playerName + "';";
 			statement.executeUpdate(sql);
 			statement.close();
@@ -183,12 +183,12 @@ public class PPlayer
 
 	public static boolean lockAllPlayer()
 	{
-		Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
+		Player[] players = PMain.plugin.getServer().getOnlinePlayers();
 		boolean b = true;
 		for (Player player : players) {
 			if (!lockPlayer(player)) {
 				b = false;
-				PlayerSQL.plugin.getLogger().info("锁定玩家 " + player.getName() + " 失败");
+				PMain.plugin.getLogger().info("锁定玩家 " + player.getName() + " 失败");
 			}
 		}
 		return b;
@@ -196,12 +196,12 @@ public class PPlayer
 
 	public static boolean unlockAllPlayer()
 	{
-		Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
+		Player[] players = PMain.plugin.getServer().getOnlinePlayers();
 		boolean b = true;
 		for (Player player : players) {
 			if (!unlockPlayer(player)) {
 				b = false;
-				PlayerSQL.plugin.getLogger().info("解锁玩家 " + player.getName() + " 失败");
+				PMain.plugin.getLogger().info("解锁玩家 " + player.getName() + " 失败");
 			}
 		}
 		return b;
@@ -209,12 +209,12 @@ public class PPlayer
 
 	public static boolean saveAllPlayer()
 	{
-		Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
+		Player[] players = PMain.plugin.getServer().getOnlinePlayers();
 		boolean b = true;
 		for (Player player : players) {
 			if (!savePlayer(player)) {
 				b = false;
-				PlayerSQL.plugin.getLogger().info("保存玩家 " + player.getName() + " 失败");
+				PMain.plugin.getLogger().info("保存玩家 " + player.getName() + " 失败");
 			}
 		}
 		return b;

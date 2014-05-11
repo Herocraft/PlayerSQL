@@ -1,4 +1,4 @@
-package com.mengcraft.PlayerSQL;
+package com.mengcraft.playersql;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -12,7 +12,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class PlayerSQL extends JavaPlugin implements Listener
+public class PMain extends JavaPlugin implements Listener
 {
 	public static Plugin plugin;
 	private PCommand doCommand = new PCommand();
@@ -22,35 +22,35 @@ public class PlayerSQL extends JavaPlugin implements Listener
 	{
 		plugin = this;
 		saveDefaultConfig();
-		PTranslat.translat();
+		PTrans.translat();
 		if (getConfig().getBoolean("use")) {
-			if (PSQL.openConnect()) {
-				getLogger().info(PTranslat.i);
-				if (PSQL.createTables()) {
+			if (SQLUtils.openConnect()) {
+				getLogger().info(PTrans.i);
+				if (SQLUtils.createTables()) {
 					getServer().getPluginManager().registerEvents(this, this);
-					getLogger().info(PTranslat.j);
-					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTranslat.k);
-					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTranslat.l);
+					getLogger().info(PTrans.j);
+					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTrans.k);
+					Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTrans.l);
 				}
 				else {
 					getLogger().info("数据表效验失败");
 					setEnabled(false);
 				}
-				if (!PPlayer.lockAllPlayer()) {
+				if (!PUtils.lockAllPlayer()) {
 					getLogger().info("锁定在线玩家失败");
 				}
 				if (getConfig().getBoolean("daily.use")) {
-					DSThread dailySaveThread = new DSThread();
+					PThread dailySaveThread = new PThread();
 					dailySaveThread.start();
 				}
 			}
 			else {
-				getLogger().info(PTranslat.m);
+				getLogger().info(PTrans.m);
 				setEnabled(false);
 			}
 		}
 		else {
-			getLogger().info(PTranslat.n);
+			getLogger().info(PTrans.n);
 			setEnabled(false);
 		}
 	}
@@ -61,11 +61,11 @@ public class PlayerSQL extends JavaPlugin implements Listener
 		if (!getConfig().getBoolean("use")) {
 			return;
 		}
-		if (PSQL.openConnect()) {
-			if (PPlayer.saveAllPlayer() && PPlayer.unlockAllPlayer()) {
-				getLogger().info(PTranslat.a);
+		if (SQLUtils.openConnect()) {
+			if (PUtils.saveAllPlayer() && PUtils.unlockAllPlayer()) {
+				getLogger().info(PTrans.a);
 			}
-			if (PSQL.closeConnect()) {
+			if (SQLUtils.closeConnect()) {
 				getLogger().info("关闭数据库连接成功");
 			}
 			else {
@@ -112,15 +112,15 @@ class PlayerQuitThread extends Thread
 	@Override
 	public void run()
 	{
-		Plugin plugin = PlayerSQL.plugin;
-		if (PPlayer.savePlayer(player)) {
-			plugin.getLogger().info(PTranslat.d + player.getName() + PTranslat.f);
-			if (!PPlayer.unlockPlayer(player)) {
-				plugin.getLogger().info("解锁玩家 " + player.getName() + PTranslat.g);
+		Plugin plugin = PMain.plugin;
+		if (PUtils.savePlayer(player)) {
+			plugin.getLogger().info(PTrans.d + player.getName() + PTrans.f);
+			if (!PUtils.unlockPlayer(player)) {
+				plugin.getLogger().info("解锁玩家 " + player.getName() + PTrans.g);
 			}
 		}
 		else {
-			plugin.getLogger().info(PTranslat.d + player.getName() + PTranslat.g);
+			plugin.getLogger().info(PTrans.d + player.getName() + PTrans.g);
 		}
 	}
 }
@@ -138,21 +138,21 @@ class PlayerJoinThread extends Thread
 	public void run()
 	{
 		try {
-			Thread.sleep(PlayerSQL.plugin.getConfig().getLong("delay") * 50);
+			Thread.sleep(PMain.plugin.getConfig().getLong("delay") * 50);
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		if (PPlayer.loadPlayer(player)) {
-			PlayerSQL.plugin.getLogger().info(PTranslat.e + player.getName() + PTranslat.f);
-			if (!PPlayer.lockPlayer(player)) {
-				PlayerSQL.plugin.getLogger().info("锁定玩家 " + player.getName() + PTranslat.g);
+		if (PUtils.loadPlayer(player)) {
+			PMain.plugin.getLogger().info(PTrans.e + player.getName() + PTrans.f);
+			if (!PUtils.lockPlayer(player)) {
+				PMain.plugin.getLogger().info("锁定玩家 " + player.getName() + PTrans.g);
 			}
 		}
 		else {
 			player.sendMessage("自动载入玩家失败");
 			player.sendMessage("请联系管理员");
-			PlayerSQL.plugin.getLogger().info(PTranslat.e + player.getName() + PTranslat.g);
+			PMain.plugin.getLogger().info(PTrans.e + player.getName() + PTrans.g);
 		}
 	}
 

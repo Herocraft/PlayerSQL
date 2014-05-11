@@ -1,4 +1,4 @@
-package com.mengcraft.PlayerSQL;
+package com.mengcraft.playersql;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -7,13 +7,13 @@ import java.sql.Statement;
 
 import org.bukkit.plugin.Plugin;
 
-public class PSQL
+public class SQLUtils
 {
 	public static Connection connection;
 
 	static String[] getSQLConfig()
 	{
-		Plugin plugin = PlayerSQL.plugin;
+		Plugin plugin = PMain.plugin;
 		String[] sqlConfig = { plugin.getConfig().getString("mysql.addr"), plugin.getConfig().getString("mysql.port"),
 				plugin.getConfig().getString("mysql.data"), plugin.getConfig().getString("mysql.user"),
 				plugin.getConfig().getString("mysql.pass") };

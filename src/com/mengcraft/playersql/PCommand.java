@@ -1,4 +1,4 @@
-package com.mengcraft.PlayerSQL;
+package com.mengcraft.playersql;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -9,7 +9,7 @@ public class PCommand
 	public boolean onPlayer(CommandSender sender, String[] args)
 	{
 		if (!sender.hasPermission("playersql.admin")) {
-			sender.sendMessage(PTranslat.h);
+			sender.sendMessage(PTrans.h);
 			return true;
 		}
 		if (args.length < 1) {
@@ -45,8 +45,8 @@ public class PCommand
 		@Override
 		public void run()
 		{
-			if (PPlayer.saveAllPlayer()) {
-				sender.sendMessage(ChatColor.GREEN + PTranslat.a);
+			if (PUtils.saveAllPlayer()) {
+				sender.sendMessage(ChatColor.GREEN + PTrans.a);
 			}
 		}
 	}

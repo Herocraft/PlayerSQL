@@ -1,6 +1,6 @@
-package com.mengcraft.PlayerSQL;
+package com.mengcraft.playersql;
 
-public class PTranslat
+public class PTrans
 {
 	static String a;
 	static String b;
@@ -20,7 +20,7 @@ public class PTranslat
 
 	static void translat()
 	{
-		if (PlayerSQL.plugin.getConfig().getBoolean("english")) {
+		if (PMain.plugin.getConfig().getBoolean("english")) {
 			a = "Save all online players complate";
 			b = "Online: ";
 			c = " Players";
