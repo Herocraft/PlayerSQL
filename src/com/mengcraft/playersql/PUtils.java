@@ -16,7 +16,27 @@ import com.comphenix.protocol.utility.StreamSerializer;
 
 public class PUtils
 {
-	static String buildStackData(ItemStack[] itemStacks)
+	static String buildArmorDate(ItemStack[] itemStacks)
+	{
+		StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 0; i < itemStacks.length; i++) {
+			if (i > 0) {
+				stringBuilder.append(";");
+			}
+			if (itemStacks[i] != null) {
+				try {
+					stringBuilder.append(StreamSerializer.getDefault().serializeItemStack(itemStacks[i]));
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		String string = stringBuilder.toString();
+		return string;
+	}
+
+	static String buildStacksData(ItemStack[] itemStacks)
 	{
 		StringBuilder stringBuilder = new StringBuilder();
 		for (int i = 0; i < itemStacks.length; i++) {
@@ -28,7 +48,7 @@ public class PUtils
 					stringBuilder.append(StreamSerializer.getDefault().serializeItemStack(itemStacks[i]));
 				}
 				catch (IOException e) {
-					continue;
+					e.printStackTrace();
 				}
 			}
 		}
@@ -36,7 +56,7 @@ public class PUtils
 		return string;
 	}
 
-	static ItemStack[] restoreStackData(String string)
+	static ItemStack[] restoreStacks(String string)
 	{
 		String[] strings = string.split(";");
 		ItemStack[] itemStacks = new ItemStack[strings.length];
@@ -48,9 +68,6 @@ public class PUtils
 				catch (IOException e) {
 					e.printStackTrace();
 				}
-			}
-			else {
-				continue;
 			}
 		}
 		return itemStacks;
@@ -67,13 +84,13 @@ public class PUtils
 		Inventory enderChest = player.getEnderChest();
 
 		ItemStack[] armorStacks = inventory.getArmorContents();
-		String armorData = buildStackData(armorStacks);
+		String armorData = buildArmorDate(armorStacks);
 
 		ItemStack[] inventoryStacks = inventory.getContents();
-		String inventoryData = buildStackData(inventoryStacks);
+		String inventoryData = buildStacksData(inventoryStacks);
 
 		ItemStack[] enderChestStacks = enderChest.getContents();
-		String enderChestData = buildStackData(enderChestStacks);
+		String enderChestData = buildStacksData(enderChestStacks);
 
 		try {
 			Statement statement = SQLUtils.connection.createStatement();
@@ -100,13 +117,14 @@ public class PUtils
 			ResultSet resultSet = statement.executeQuery(sql);
 			if (resultSet.next()) {
 				if (resultSet.getInt(1) > 0) {
-					Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "玩家数据锁状态有误");
+					Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "玩家" + playerName + "数据锁状态有误");
 					player.sendMessage(ChatColor.RED + "玩家数据锁状态有误请通知管理员");
 				}
 				double health = resultSet.getDouble(2);
 				int food = resultSet.getInt(3);
 				int level = resultSet.getInt(4);
 				float exp = resultSet.getFloat(5);
+
 				String armorData = resultSet.getString(6);
 				String inventoryData = resultSet.getString(7);
 				String enderChestData = resultSet.getString(8);
@@ -119,20 +137,9 @@ public class PUtils
 				PlayerInventory inventory = player.getInventory();
 				Inventory enderChest = player.getEnderChest();
 
-				if (armorData == null) {
-					return true;
-				}
-				inventory.setArmorContents(restoreStackData(armorData));
-
-				if (inventoryData == null) {
-					return true;
-				}
-				inventory.setContents(restoreStackData(inventoryData));
-
-				if (enderChestData == null) {
-					return true;
-				}
-				enderChest.setContents(restoreStackData(enderChestData));
+				inventory.setArmorContents(restoreStacks(armorData));
+				inventory.setContents(restoreStacks(inventoryData));
+				enderChest.setContents(restoreStacks(enderChestData));
 
 				resultSet.close();
 				statement.close();
@@ -147,6 +154,7 @@ public class PUtils
 			}
 		}
 		catch (SQLException e) {
+			e.printStackTrace();
 			return false;
 		}
 	}

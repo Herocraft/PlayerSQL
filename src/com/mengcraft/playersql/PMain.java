@@ -23,7 +23,7 @@ public class PMain extends JavaPlugin implements Listener
 		plugin = this;
 		saveDefaultConfig();
 		PTrans.translat();
-		if (getConfig().getBoolean("use")) {
+		if (getConfig().getBoolean("config.use")) {
 			if (SQLUtils.openConnect()) {
 				getLogger().info(PTrans.i);
 				if (SQLUtils.createTables()) {
@@ -58,22 +58,19 @@ public class PMain extends JavaPlugin implements Listener
 	@Override
 	public void onDisable()
 	{
-		if (!getConfig().getBoolean("use")) {
+		if (!getConfig().getBoolean("config.use")) {
 			return;
 		}
 		if (SQLUtils.openConnect()) {
 			if (PUtils.saveAllPlayer() && PUtils.unlockAllPlayer()) {
 				getLogger().info(PTrans.a);
 			}
-			if (SQLUtils.closeConnect()) {
-				getLogger().info("关闭数据库连接成功");
-			}
-			else {
+			if (!SQLUtils.closeConnect()) {
 				getLogger().info("关闭数据库连接失败");
 			}
 		}
-		Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "高性能服务器出租");
-		Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "淘宝店 http://shop105595113.taobao.com");
+		Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTrans.k);
+		Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTrans.l);
 	}
 
 	@Override
@@ -138,7 +135,7 @@ class PlayerJoinThread extends Thread
 	public void run()
 	{
 		try {
-			Thread.sleep(PMain.plugin.getConfig().getLong("delay") * 50);
+			Thread.sleep(PMain.plugin.getConfig().getLong("config.delay") * 50);
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();

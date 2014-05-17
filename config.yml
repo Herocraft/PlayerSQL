@@ -1,13 +1,13 @@
-use: false
-english: false
-
-delay: 5
+config:
+    use: false
+    english: false
+    delay: 10
 
 daily:
   use: true
   show: true
   delay: 240
-  min: 5
+  min: 20
   
 mysql:
     addr: 127.0.0.1
