@@ -1,6 +1,6 @@
 name: PlayerSQL
 main: com.mengcraft.playersql.PMain
-version: 0.6.9
+version: 0.6.10
 commands:
     player:
         permission: playersql.admin
