@@ -1,4 +1,4 @@
-package com.mengcraft.playersql;
+package com.mengcraft.playerSQL;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -14,10 +14,9 @@ public class SQLUtils
 	static String[] getSQLConfig()
 	{
 		Plugin plugin = PMain.plugin;
-		String[] sqlConfig = { plugin.getConfig().getString("mysql.addr"), plugin.getConfig().getString("mysql.port"),
-				plugin.getConfig().getString("mysql.data"), plugin.getConfig().getString("mysql.user"),
-				plugin.getConfig().getString("mysql.pass") };
-		return sqlConfig;
+        return new String[]{ plugin.getConfig().getString("mysql.addr"), plugin.getConfig().getString("mysql.port"),
+                plugin.getConfig().getString("mysql.data"), plugin.getConfig().getString("mysql.user"),
+                plugin.getConfig().getString("mysql.pass") };
 	}
 
 	static Boolean getConnect()
@@ -89,8 +88,8 @@ public class SQLUtils
 			try {
 				Statement statement = connection.createStatement();
 				String sql = "CREATE TABLE IF NOT EXISTS " + "PlayerSQL (" + "Id int NOT NULL AUTO_INCREMENT, "
-						+ "PlayerName text, " + "Locked int, " + "Health int, " + "Food int, " + "Level int, "
-						+ "Exp text, " + "Armor text, " + "Inventory text, " + "EnderChest text, " + "PRIMARY KEY (Id));";
+						+ "PlayerName text, " + "Locked int, " + "Health int, " + "MaxHealth int, " +"Food int, " + "Level int, "
+						+ "Exp text, " + "Armor text, " + "Inventory text, " + "EndChest text, " + "PRIMARY KEY (Id));";
 				statement.executeUpdate(sql);
 				statement.close();
 				return true;

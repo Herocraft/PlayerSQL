@@ -1,10 +1,4 @@
 name: PlayerSQL
-main: com.mengcraft.playersql.PMain
-version: 0.6.10
-commands:
-    player:
-        permission: playersql.admin
-permissions:
-    playersql.admin:
-        default: op
+main: com.mengcraft.playerSQL.PMain
+version: 0.6.12
 depend: [ProtocolLib]

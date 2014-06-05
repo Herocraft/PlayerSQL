@@ -1,4 +1,4 @@
-package com.mengcraft.playersql;
+package com.mengcraft.playerSQL;
 
 public class PTrans
 {
@@ -28,7 +28,7 @@ public class PTrans
 			e = "Load player ";
 			f = " success";
 			g = " failed";
-			h = "You don't hava playersql.admin permission";
+			h = "You don't hava playerSQL.admin permission";
 			i = "Connect success";
 			j = "Check success";
 			k = "Thanks for download.";

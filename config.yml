@@ -1,7 +1,7 @@
 config:
-    use: false
-    english: false
-    delay: 10
+  use: false
+  english: false
+  delay: 10
 
 daily:
   use: true
@@ -10,8 +10,8 @@ daily:
   min: 20
   
 mysql:
-    addr: 127.0.0.1
-    port: 3306
-    data: minecraft
-    user: user
-    pass: pass
+  addr: 127.0.0.1
+  port: 3306
+  data: mc
+  user: user
+  pass: pass

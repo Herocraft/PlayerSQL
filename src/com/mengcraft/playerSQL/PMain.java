@@ -1,4 +1,4 @@
-package com.mengcraft.playersql;
+package com.mengcraft.playerSQL;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,8 +18,6 @@ public class PMain extends JavaPlugin implements Listener {
         plugin = this;
         saveDefaultConfig();
         PTrans.translat();
-        PCommand command = new PCommand();
-        getCommand("player").setExecutor(command);
         if (getConfig().getBoolean("config.use")) {
             if (SQLUtils.openConnect()) {
                 getLogger().info(PTrans.i);
@@ -74,8 +72,9 @@ public class PMain extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
+        int delay = getConfig().getInt("config.delay");
         PlayerJoinThread playerJoinThread = new PlayerJoinThread(event);
-        playerJoinThread.start();
+        getServer().getScheduler().runTaskLater(plugin,playerJoinThread,delay);
     }
 }
 
@@ -100,7 +99,7 @@ class PlayerQuitThread extends Thread {
     }
 }
 
-class PlayerJoinThread extends Thread {
+class PlayerJoinThread implements Runnable {
     private Player player;
 
     public PlayerJoinThread(PlayerJoinEvent event) {
@@ -109,11 +108,6 @@ class PlayerJoinThread extends Thread {
 
     @Override
     public void run() {
-        try {
-            Thread.sleep(PMain.plugin.getConfig().getLong("config.delay") * 50);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         if (PUtils.loadPlayer(player)) {
             PMain.plugin.getLogger().info(PTrans.e + player.getName() + PTrans.f);
             if (!PUtils.lockPlayer(player)) {

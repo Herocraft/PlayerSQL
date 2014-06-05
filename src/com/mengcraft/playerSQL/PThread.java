@@ -1,4 +1,4 @@
-package com.mengcraft.playersql;
+package com.mengcraft.playerSQL;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
