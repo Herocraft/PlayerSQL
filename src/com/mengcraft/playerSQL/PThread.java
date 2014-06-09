@@ -33,7 +33,7 @@ public class PThread extends Thread
 					if (!players[i].isOnline()) {
 						continue;
 					}
-					if (PUtils.savePlayer(players[i]) && show) {
+					if (Utils.savePlayer(players[i]) && show) {
 						Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTrans.d + players[i].getName() + PTrans.f);
 						Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTrans.o + (i + 1) + " / " + players.length);
 					}

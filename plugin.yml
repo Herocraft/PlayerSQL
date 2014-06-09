@@ -1,4 +1,4 @@
 name: PlayerSQL
 main: com.mengcraft.playerSQL.PMain
-version: 0.6.12
+version: 0.7.1
 depend: [ProtocolLib]

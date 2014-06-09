@@ -7,7 +7,7 @@ import java.sql.Statement;
 
 import org.bukkit.plugin.Plugin;
 
-public class SQLUtils
+public class SQL
 {
 	public static Connection connection;
 
@@ -88,7 +88,7 @@ public class SQLUtils
 			try {
 				Statement statement = connection.createStatement();
 				String sql = "CREATE TABLE IF NOT EXISTS " + "PlayerSQL (" + "Id int NOT NULL AUTO_INCREMENT, "
-						+ "PlayerName text, " + "Locked int, " + "Health int, " + "MaxHealth int, " +"Food int, " + "Level int, "
+						+ "PlayerName text, " + "Locked int, " + "Health int, "  +"Food int, " + "Level int, "
 						+ "Exp text, " + "Armor text, " + "Inventory text, " + "EndChest text, " + "PRIMARY KEY (Id));";
 				statement.executeUpdate(sql);
 				statement.close();

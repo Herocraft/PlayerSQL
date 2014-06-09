@@ -1,5 +1,6 @@
 package com.mengcraft.playerSQL;
 
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -8,20 +9,25 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class PMain extends JavaPlugin implements Listener {
+    public static Economy economy;
     public static Plugin plugin;
 
     @Override
     public void onEnable() {
-        plugin = this;
         saveDefaultConfig();
+        plugin = this;
         PTrans.translat();
+        economy = getServer().getPluginManager().getPlugin("Vault") != null ?
+                setupEconomy() :
+                null;
         if (getConfig().getBoolean("config.use")) {
-            if (SQLUtils.openConnect()) {
+            if (SQL.openConnect()) {
                 getLogger().info(PTrans.i);
-                if (SQLUtils.createTables()) {
+                if (SQL.createTables()) {
                     getServer().getPluginManager().registerEvents(this, this);
                     getLogger().info(PTrans.j);
                     Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTrans.k);
@@ -30,7 +36,7 @@ public class PMain extends JavaPlugin implements Listener {
                     getLogger().info("数据表效验失败");
                     setEnabled(false);
                 }
-                if (!PUtils.lockAllPlayer()) {
+                if (!Utils.lockAllPlayer()) {
                     getLogger().info("锁定在线玩家失败");
                 }
                 if (getConfig().getBoolean("daily.use")) {
@@ -52,11 +58,11 @@ public class PMain extends JavaPlugin implements Listener {
         if (!getConfig().getBoolean("config.use")) {
             return;
         }
-        if (SQLUtils.openConnect()) {
-            if (PUtils.saveAllPlayer() && PUtils.unlockAllPlayer()) {
+        if (SQL.openConnect()) {
+            if (Utils.saveAllPlayer() && Utils.unlockAllPlayer()) {
                 getLogger().info(PTrans.a);
             }
-            if (!SQLUtils.closeConnect()) {
+            if (!SQL.closeConnect()) {
                 getLogger().info("关闭数据库连接失败");
             }
         }
@@ -74,7 +80,15 @@ public class PMain extends JavaPlugin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         int delay = getConfig().getInt("config.delay");
         PlayerJoinThread playerJoinThread = new PlayerJoinThread(event);
-        getServer().getScheduler().runTaskLater(plugin,playerJoinThread,delay);
+        getServer().getScheduler().runTaskLaterAsynchronously(plugin, playerJoinThread, delay);
+    }
+
+    private Economy setupEconomy() {
+        RegisteredServiceProvider<Economy> economyProvider = getServer().
+                getServicesManager().
+                getRegistration(net.milkbowl.vault.economy.Economy.class);
+
+        return economyProvider.getProvider();
     }
 }
 
@@ -88,9 +102,9 @@ class PlayerQuitThread extends Thread {
     @Override
     public void run() {
         Plugin plugin = PMain.plugin;
-        if (PUtils.savePlayer(player)) {
+        if (Utils.savePlayer(player)) {
             plugin.getLogger().info(PTrans.d + player.getName() + PTrans.f);
-            if (!PUtils.unlockPlayer(player)) {
+            if (!Utils.unlockPlayer(player)) {
                 plugin.getLogger().info("解锁玩家 " + player.getName() + PTrans.g);
             }
         } else {
@@ -108,9 +122,9 @@ class PlayerJoinThread implements Runnable {
 
     @Override
     public void run() {
-        if (PUtils.loadPlayer(player)) {
+        if (Utils.loadPlayer(player)) {
             PMain.plugin.getLogger().info(PTrans.e + player.getName() + PTrans.f);
-            if (!PUtils.lockPlayer(player)) {
+            if (!Utils.lockPlayer(player)) {
                 PMain.plugin.getLogger().info("锁定玩家 " + player.getName() + PTrans.g);
             }
         } else {
