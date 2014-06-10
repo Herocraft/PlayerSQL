@@ -91,10 +91,10 @@ public class Utils {
                     + "';";
             statement.executeUpdate(sql);
 
-            boolean status = PMain.economy != null &&
-                    PMain.plugin.getConfig().getBoolean("config.economy", true);
+            boolean status = Main.economy != null &&
+                    Main.plugin.getConfig().getBoolean("config.economy", true);
             if (status) {
-                double economy = PMain.economy.getBalance(playerName);
+                double economy = Main.economy.getBalance(playerName);
                 sql = "UPDATE PlayerSQL SET Economy = " + economy + ";";
                 statement.executeUpdate(sql);
             }
@@ -143,17 +143,17 @@ public class Utils {
                 inventory.setContents(restoreStacks(inventoryData));
                 endChest.setContents(restoreStacks(endChestData));
 
-                boolean status = PMain.economy != null &&
-                        PMain.plugin.getConfig().getBoolean("config.economy", true);
+                boolean status = Main.economy != null &&
+                        Main.plugin.getConfig().getBoolean("config.economy", true);
                 if (status) {
                     sql = "SELECT Economy FROM PlayerSQL WHERE PlayerName = '" + playerName + "';";
                     resultSet = statement.executeQuery(sql);
                     if (resultSet.next()) {
                         double economy = resultSet.getDouble(1);
-                        double playerEconomy = PMain.economy.getBalance(playerName);
+                        double playerEconomy = Main.economy.getBalance(playerName);
                         if (economy > 0) {
-                            if (economy > playerEconomy) PMain.economy.depositPlayer(playerName, economy - playerEconomy);
-                            else PMain.economy.withdrawPlayer(playerName, playerEconomy - economy);
+                            if (economy > playerEconomy) Main.economy.depositPlayer(playerName, economy - playerEconomy);
+                            else Main.economy.withdrawPlayer(playerName, playerEconomy - economy);
                         }
                     }
                 }
@@ -201,36 +201,36 @@ public class Utils {
     }
 
     public static boolean lockAllPlayer() {
-        Player[] players = PMain.plugin.getServer().getOnlinePlayers();
+        Player[] players = Main.plugin.getServer().getOnlinePlayers();
         boolean b = true;
         for (Player player : players) {
             if (!lockPlayer(player)) {
                 b = false;
-                PMain.plugin.getLogger().info("锁定玩家 " + player.getName() + " 失败");
+                Main.plugin.getLogger().info("锁定玩家 " + player.getName() + " 失败");
             }
         }
         return b;
     }
 
     public static boolean unlockAllPlayer() {
-        Player[] players = PMain.plugin.getServer().getOnlinePlayers();
+        Player[] players = Main.plugin.getServer().getOnlinePlayers();
         boolean b = true;
         for (Player player : players) {
             if (!unlockPlayer(player)) {
                 b = false;
-                PMain.plugin.getLogger().info("解锁玩家 " + player.getName() + " 失败");
+                Main.plugin.getLogger().info("解锁玩家 " + player.getName() + " 失败");
             }
         }
         return b;
     }
 
     public static boolean saveAllPlayer() {
-        Player[] players = PMain.plugin.getServer().getOnlinePlayers();
+        Player[] players = Main.plugin.getServer().getOnlinePlayers();
         boolean b = true;
         for (Player player : players) {
             if (!savePlayer(player)) {
                 b = false;
-                PMain.plugin.getLogger().info("保存玩家 " + player.getName() + " 失败");
+                Main.plugin.getLogger().info("保存玩家 " + player.getName() + " 失败");
             }
         }
         return b;

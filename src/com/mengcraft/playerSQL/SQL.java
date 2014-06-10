@@ -13,7 +13,7 @@ public class SQL
 
 	static String[] getSQLConfig()
 	{
-		Plugin plugin = PMain.plugin;
+		Plugin plugin = Main.plugin;
         return new String[]{ plugin.getConfig().getString("mysql.addr"), plugin.getConfig().getString("mysql.port"),
                 plugin.getConfig().getString("mysql.data"), plugin.getConfig().getString("mysql.user"),
                 plugin.getConfig().getString("mysql.pass") };

@@ -20,7 +20,7 @@ public class PTrans
 
 	static void translat()
 	{
-		if (PMain.plugin.getConfig().getBoolean("config.english")) {
+		if (Main.plugin.getConfig().getBoolean("config.english")) {
 			a = "Save all online players complate";
 			b = "Online: ";
 			c = " Players";
