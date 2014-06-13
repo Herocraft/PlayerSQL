@@ -9,7 +9,7 @@ public class PlayerDailyThread extends Thread {
     @Override
     public void run() {
         final int delay = PlayerSQL.plugin.getConfig().getInt("daily.delay");
-        final int min = PlayerSQL.plugin.getConfig().getInt("daily.min");
+        int min = PlayerSQL.plugin.getConfig().getInt("daily.min");
 
         Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
 
@@ -25,9 +25,13 @@ public class PlayerDailyThread extends Thread {
                     e.printStackTrace();
                 }
             }
-            PlayerSQL.plugin.getLogger().info("Save data successfully");
+            PlayerSQL.plugin.getLogger().info("Save all player successfully");
         }
-        PlayerDailyThread thread = new PlayerDailyThread();
-        PlayerSQL.plugin.getServer().getScheduler().runTaskLaterAsynchronously(PlayerSQL.plugin, thread, delay * 5);
+        min = PlayerSQL.plugin.isEnabled() ? 1 : 0;
+        if (min == 1) {
+            PlayerDailyThread thread = new PlayerDailyThread();
+            PlayerSQL.plugin.getServer().getScheduler().runTaskLaterAsynchronously(PlayerSQL.plugin, thread, delay * 5);
+        }
+
     }
 }

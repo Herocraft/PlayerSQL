@@ -2,6 +2,7 @@ package com.mengcraft.playerSQL;
 
 import com.mengcraft.playerSQL.thread.PlayerJoinThread;
 import com.mengcraft.playerSQL.thread.PlayerQuitThread;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -10,14 +11,15 @@ public class PlayerListener implements org.bukkit.event.Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        PlayerQuitThread playerQuitThread = new PlayerQuitThread(event);
-        PlayerSQL.plugin.getServer().getScheduler().runTaskAsynchronously(PlayerSQL.plugin, playerQuitThread);
+        Player player = event.getPlayer();
+        PlayerQuitThread thread = new PlayerQuitThread(player);
+        PlayerSQL.plugin.getServer().getScheduler().runTaskAsynchronously(PlayerSQL.plugin,thread);
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        int delay = PlayerSQL.plugin.getConfig().getInt("config.delay");
-        PlayerJoinThread playerJoinThread = new PlayerJoinThread(event);
-        PlayerSQL.plugin.getServer().getScheduler().runTaskLaterAsynchronously(PlayerSQL.plugin, playerJoinThread, delay);
+        Player player = event.getPlayer();
+        PlayerJoinThread thread = new PlayerJoinThread(player);
+        PlayerSQL.plugin.getServer().getScheduler().runTaskLaterAsynchronously(PlayerSQL.plugin, thread, 10);
     }
 }

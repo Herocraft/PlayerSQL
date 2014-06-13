@@ -1,7 +1,6 @@
 config:
   use: false
   english: false
-  delay: 10
   economy: true
 
 daily:

@@ -18,57 +18,40 @@ public class PlayerSQL extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        try {
-            Metrics metrics = new Metrics(this);
-            metrics.start();
-            getLogger().info("Connect mcstats.org success");
-        } catch (IOException e) {
-            getLogger().info("Failed to connect mcstats.org");
-        }
         boolean status = getServer().getPluginManager().getPlugin("ProtocolLib") == null;
         if (status) {
             Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[PlayerSQL] ProtocolLib NOT found!");
-            getServer().getPluginManager().disablePlugin(this);
-
-            return;
-        }
-        saveDefaultConfig();
-        plugin = this;
-        PTrans.translate();
-        Plugin vault = getServer().getPluginManager().getPlugin("Vault");
-        if (vault != null) {
-            String s = setupEconomy() ?
-                    "Hook to Vault success" : null;
-            if (s != null) getLogger().info(s);
-        }
-
-        if (getConfig().getBoolean("config.use")) {
-            if (Database.openConnect()) {
-                getLogger().info(PTrans.i);
-                if (Database.createTables()) {
-                    PlayerListener playerListener = new PlayerListener();
-                    getServer().getPluginManager().registerEvents(playerListener, plugin);
-                    getLogger().info(PTrans.j);
-                    Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTrans.k);
-                    Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTrans.l);
-                } else {
-                    getLogger().info("数据表效验失败");
-                    setEnabled(false);
-                }
-                if (!PlayerUtils.lockAllPlayer()) {
-                    getLogger().info("锁定在线玩家失败");
-                }
+            setEnabled(false);
+        } else {
+            saveDefaultConfig();
+            plugin = this;
+            status = getConfig().getBoolean("config.use") && Database.openConnect();
+            if (status) {
+                Database.createTables();
+                PlayerUtils.lockAllPlayer();
                 if (getConfig().getBoolean("daily.use")) {
                     PlayerDailyThread thread = new PlayerDailyThread();
-                    getServer().getScheduler().runTaskAsynchronously(plugin,thread);
+                    getServer().getScheduler().runTaskAsynchronously(plugin, thread);
+                }
+                Plugin vault = getServer().getPluginManager().getPlugin("Vault");
+                if (vault != null) {
+                    String s = setupEconomy() ?
+                            "Hook to Vault success" : null;
+                    if (s != null) getLogger().info(s);
+                }
+                PlayerListener listener = new PlayerListener();
+                getServer().getPluginManager().registerEvents(listener, plugin);
+                try {
+                    Metrics metrics = new Metrics(this);
+                    metrics.start();
+                    getLogger().info("Connect mcstats.org success");
+                } catch (IOException e) {
+                    getLogger().info("Failed to connect mcstats.org");
                 }
             } else {
-                getLogger().info(PTrans.m);
+                getLogger().info("Please check the config.yml");
                 setEnabled(false);
             }
-        } else {
-            getLogger().info(PTrans.n);
-            setEnabled(false);
         }
     }
 
@@ -78,13 +61,9 @@ public class PlayerSQL extends JavaPlugin implements Listener {
                 getConfig().getBoolean("config.use") &&
                 Database.openConnect();
         if (status) {
-            if (PlayerUtils.saveAllPlayer() && PlayerUtils.unlockAllPlayer()) {
-                getLogger().info(PTrans.a);
-            }
-            if (!Database.closeConnect()) getLogger().info("关闭数据库连接失败");
-
-            Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTrans.k);
-            Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTrans.l);
+            PlayerUtils.saveAllPlayer();
+            PlayerUtils.unlockAllPlayer();
+            Database.closeConnect();
         }
     }
 
@@ -93,7 +72,6 @@ public class PlayerSQL extends JavaPlugin implements Listener {
         if (economyProvider != null) {
             economy = economyProvider.getProvider();
         }
-
         return (economy != null);
     }
 }

@@ -1,30 +1,46 @@
 package com.mengcraft.playerSQL.thread;
 
-import com.mengcraft.playerSQL.PTrans;
 import com.mengcraft.playerSQL.PlayerSQL;
 import com.mengcraft.playerSQL.PlayerUtils;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerJoinEvent;
 
 public class PlayerJoinThread implements Runnable {
     private Player player;
 
-    public PlayerJoinThread(PlayerJoinEvent event) {
-        player = event.getPlayer();
+    public PlayerJoinThread(Player player) {
+        this.player = player;
     }
 
     @Override
     public void run() {
-        if (PlayerUtils.loadPlayer(player)) {
-            PlayerSQL.plugin.getLogger().info(PTrans.e + player.getName() + PTrans.f);
-            if (!PlayerUtils.lockPlayer(player)) {
-                PlayerSQL.plugin.getLogger().info("锁定玩家 " + player.getName() + PTrans.g);
+        int lockStatus = PlayerUtils.getLockStatus(this.player);
+        switch (lockStatus) {
+            case 0:
+                PlayerUtils.loadPlayer(player);
+                PlayerUtils.lockPlayer(player);
+                break;
+            case 1: {
+                int i;
+                for (i = 0; i < 4; i++) {
+                    try {
+                        Thread.sleep(250);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    i = PlayerUtils.getLockStatus(player) == 0 ?
+                            4 : i;
+                }
+                PlayerUtils.loadPlayer(player);
+                PlayerUtils.lockPlayer(player);
+                if (i == 4) {
+                    PlayerSQL.plugin.getLogger().warning("Waiting for unlock maximum time limit.");
+                    PlayerSQL.plugin.getLogger().warning("Report to me, thank you.");
+                }
+                break;
             }
-        } else {
-            player.sendMessage("自动载入玩家失败");
-            player.sendMessage("请联系管理员");
-            PlayerSQL.plugin.getLogger().info(PTrans.e + player.getName() + PTrans.g);
+            case 2:
+                PlayerUtils.setupPlayer(player);
+                break;
         }
     }
-
 }

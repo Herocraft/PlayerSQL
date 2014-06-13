@@ -1,18 +1,16 @@
 package com.mengcraft.playerSQL;
 
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import com.comphenix.protocol.utility.StreamSerializer;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import com.comphenix.protocol.utility.StreamSerializer;
+
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class PlayerUtils {
     static String buildArmorDate(ItemStack[] itemStacks) {
@@ -66,12 +64,20 @@ public class PlayerUtils {
         } else return new ItemStack[]{new ItemStack(Material.AIR)};
     }
 
-    public static Boolean savePlayer(Player player) {
+    public static void savePlayer(Player player) {
         String playerName = player.getName().toLowerCase();
         double health = player.getHealth();
         int food = player.getFoodLevel();
         int level = player.getLevel();
         float exp = player.getExp();
+
+        double economy = 0;
+
+        boolean status = PlayerSQL.economy != null &&
+                PlayerSQL.plugin.getConfig().getBoolean("config.economy", true);
+
+        if (status) economy = PlayerSQL.economy.getBalance(playerName);
+
         PlayerInventory inventory = player.getInventory();
         Inventory endChest = player.getEnderChest();
 
@@ -87,50 +93,58 @@ public class PlayerUtils {
         try {
             Statement statement = Database.connection.createStatement();
             String sql = "UPDATE PlayerSQL " + "SET " +
-                    "Health = " + health + ", Food = " + food + ", " + "Level = " + level
-                    + ", " + "Exp = " + Float.toString(exp) + ", " + "Armor = '" + armorData + "', " + "Inventory = '"
-                    + inventoryData + "', " + "EndChest = '" + endChestData + "' " + "WHERE PlayerName = '" + playerName
-                    + "';";
+                    "Economy = " + economy + ", " +
+                    "Health = " + health + ", " +
+                    "Food = " + food + ", " +
+                    "Level = " + level + ", " +
+                    "Exp = " + Float.toString(exp) + ", " +
+                    "Armor = '" + armorData + "', " +
+                    "Inventory = '" + inventoryData + "', " +
+                    "EndChest = '" + endChestData + "' " +
+                    "WHERE PlayerName = '" + playerName + "';";
             statement.executeUpdate(sql);
-
-            boolean status = PlayerSQL.economy != null &&
-                    PlayerSQL.plugin.getConfig().getBoolean("config.economy", true);
-            if (status) {
-                double economy = PlayerSQL.economy.getBalance(playerName);
-                sql = "UPDATE PlayerSQL SET Economy = " + economy + ";";
-                statement.executeUpdate(sql);
-            }
-
             statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         }
-
-        return true;
     }
 
-    public static boolean loadPlayer(Player player) {
+    public static int getLockStatus(Player player) {
         String playerName = player.getName().toLowerCase();
-        String sql = "SELECT Locked, Health, Food, Level, Exp, Armor, Inventory, EndChest "
+        String sql = "SELECT Locked FROM PlayerSQL WHERE PlayerName = '" + playerName + "';";
+        int dataLock = 0;
+        try {
+            Statement statement = Database.connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(sql);
+            dataLock = resultSet.next() ?
+                    0 : 2;
+            if (dataLock > 1) return 2;
+            dataLock = resultSet.getInt(1);
+            resultSet.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return dataLock;
+    }
+
+    public static void loadPlayer(Player player) {
+        String playerName = player.getName().toLowerCase();
+        String sql = "SELECT Health, Food, Level, Exp, Armor, Inventory, EndChest, Economy "
                 + "FROM PlayerSQL WHERE PlayerName = '" + playerName + "';";
         try {
             Statement statement = Database.connection.createStatement();
             ResultSet resultSet = statement.executeQuery(sql);
-            if (resultSet.next()) {
-                if (resultSet.getInt(1) > 0) {
-                    Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "玩家" + playerName + "数据锁状态有误");
-                    player.sendMessage(ChatColor.RED + "玩家数据锁状态有误请通知管理员");
-                }
-                double health = resultSet.getDouble(2);
+            boolean status = resultSet.next();
+            if (status) {
+                double health = resultSet.getDouble(1);
                 double maxHealth = player.getMaxHealth();
-                int food = resultSet.getInt(3);
-                int level = resultSet.getInt(4);
-                float exp = resultSet.getFloat(5);
+                int food = resultSet.getInt(2);
+                int level = resultSet.getInt(3);
+                float exp = resultSet.getFloat(4);
 
-                String armorData = resultSet.getString(6);
-                String inventoryData = resultSet.getString(7);
-                String endChestData = resultSet.getString(8);
+                String armorData = resultSet.getString(5);
+                String inventoryData = resultSet.getString(6);
+                String endChestData = resultSet.getString(7);
 
                 health = Math.min(health, maxHealth);
                 player.setHealth(health);
@@ -145,34 +159,32 @@ public class PlayerUtils {
                 inventory.setContents(restoreStacks(inventoryData));
                 endChest.setContents(restoreStacks(endChestData));
 
-                boolean status = PlayerSQL.economy != null &&
+                status = PlayerSQL.economy != null &&
                         PlayerSQL.plugin.getConfig().getBoolean("config.economy", true);
                 if (status) {
-                    sql = "SELECT Economy FROM PlayerSQL WHERE PlayerName = '" + playerName + "';";
-                    resultSet = statement.executeQuery(sql);
-                    if (resultSet.next()) {
-                        double economy = resultSet.getDouble(1);
-                        double playerEconomy = PlayerSQL.economy.getBalance(playerName);
-                        if (economy > 0) {
-                            if (economy > playerEconomy) PlayerSQL.economy.depositPlayer(playerName, economy - playerEconomy);
-                            else PlayerSQL.economy.withdrawPlayer(playerName, playerEconomy - economy);
-                        }
+                    double economy = resultSet.getDouble(8);
+                    double playerEconomy = PlayerSQL.economy.getBalance(playerName);
+                    if (economy > 0) {
+                        if (economy > playerEconomy)
+                            PlayerSQL.economy.depositPlayer(playerName, economy - playerEconomy);
+                        else PlayerSQL.economy.withdrawPlayer(playerName, playerEconomy - economy);
                     }
                 }
-
-                resultSet.close();
-                statement.close();
-                return true;
-            } else {
-                sql = "INSERT INTO PlayerSQL " + "(PlayerName) " + "VALUES ('" + playerName + "');";
-                statement.executeUpdate(sql);
-                resultSet.close();
-                statement.close();
-                return true;
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
+        }
+    }
+
+    public static void setupPlayer(Player player) {
+        String playerName = player.getName().toLowerCase();
+        String sql = "INSERT INTO PlayerSQL " + "(PlayerName) " + "VALUES ('" + playerName + "');";
+        try {
+            Statement statement = Database.connection.createStatement();
+            statement.executeUpdate(sql);
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -189,53 +201,31 @@ public class PlayerUtils {
         }
     }
 
-    public static boolean unlockPlayer(Player player) {
+    public static void unlockPlayer(Player player) {
         String playerName = player.getName().toLowerCase();
         try {
             Statement statement = Database.connection.createStatement();
             String sql = "UPDATE PlayerSQL " + "SET Locked = 0 " + "WHERE PlayerName = '" + playerName + "';";
             statement.executeUpdate(sql);
             statement.close();
-            return true;
         } catch (SQLException e) {
-            return false;
+            PlayerSQL.plugin.getLogger().info("Failed to unlock the player " + playerName);
+            PlayerSQL.plugin.getLogger().info("This type of mistake is strange :(");
         }
     }
 
-    public static boolean lockAllPlayer() {
+    public static void lockAllPlayer() {
         Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
-        boolean b = true;
-        for (Player player : players) {
-            if (!lockPlayer(player)) {
-                b = false;
-                PlayerSQL.plugin.getLogger().info("锁定玩家 " + player.getName() + " 失败");
-            }
-        }
-        return b;
+        for (Player player : players) lockPlayer(player);
     }
 
-    public static boolean unlockAllPlayer() {
+    public static void unlockAllPlayer() {
         Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
-        boolean b = true;
-        for (Player player : players) {
-            if (!unlockPlayer(player)) {
-                b = false;
-                PlayerSQL.plugin.getLogger().info("解锁玩家 " + player.getName() + " 失败");
-            }
-        }
-        return b;
+        for (Player player : players) unlockPlayer(player);
     }
 
-    public static boolean saveAllPlayer() {
+    public static void saveAllPlayer() {
         Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
-        boolean b = true;
-        for (Player player : players) {
-            if (!savePlayer(player)) {
-                b = false;
-                PlayerSQL.plugin.getLogger().info("保存玩家 " + player.getName() + " 失败");
-            }
-        }
-        return b;
+        for (Player player : players) savePlayer(player);
     }
-
 }
