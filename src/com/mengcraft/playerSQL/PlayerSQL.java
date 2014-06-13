@@ -1,5 +1,6 @@
 package com.mengcraft.playerSQL;
 
+import com.mengcraft.playerSQL.thread.PlayerDailyThread;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -7,13 +8,23 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.mcstats.Metrics;
 
-public class Main extends JavaPlugin implements Listener {
-    public static Economy economy;
+import java.io.IOException;
+
+public class PlayerSQL extends JavaPlugin implements Listener {
+    public static Economy economy = null;
     public static Plugin plugin;
 
     @Override
     public void onEnable() {
+        try {
+            Metrics metrics = new Metrics(this);
+            metrics.start();
+            getLogger().info("Connect mcstats.org success");
+        } catch (IOException e) {
+            getLogger().info("Failed to connect mcstats.org");
+        }
         boolean status = getServer().getPluginManager().getPlugin("ProtocolLib") == null;
         if (status) {
             Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[PlayerSQL] ProtocolLib NOT found!");
@@ -23,14 +34,18 @@ public class Main extends JavaPlugin implements Listener {
         }
         saveDefaultConfig();
         plugin = this;
-        PTrans.translat();
-        economy = getServer().getPluginManager().getPlugin("Vault") != null ?
-                setupEconomy() :
-                null;
+        PTrans.translate();
+        Plugin vault = getServer().getPluginManager().getPlugin("Vault");
+        if (vault != null) {
+            String s = setupEconomy() ?
+                    "Hook to Vault success" : null;
+            if (s != null) getLogger().info(s);
+        }
+
         if (getConfig().getBoolean("config.use")) {
-            if (SQL.openConnect()) {
+            if (Database.openConnect()) {
                 getLogger().info(PTrans.i);
-                if (SQL.createTables()) {
+                if (Database.createTables()) {
                     PlayerListener playerListener = new PlayerListener();
                     getServer().getPluginManager().registerEvents(playerListener, plugin);
                     getLogger().info(PTrans.j);
@@ -40,12 +55,12 @@ public class Main extends JavaPlugin implements Listener {
                     getLogger().info("数据表效验失败");
                     setEnabled(false);
                 }
-                if (!Utils.lockAllPlayer()) {
+                if (!PlayerUtils.lockAllPlayer()) {
                     getLogger().info("锁定在线玩家失败");
                 }
                 if (getConfig().getBoolean("daily.use")) {
-                    PlayerThread dailySaveThread = new PlayerThread();
-                    dailySaveThread.start();
+                    PlayerDailyThread thread = new PlayerDailyThread();
+                    getServer().getScheduler().runTaskAsynchronously(plugin,thread);
                 }
             } else {
                 getLogger().info(PTrans.m);
@@ -61,23 +76,25 @@ public class Main extends JavaPlugin implements Listener {
     public void onDisable() {
         boolean status = plugin != null &&
                 getConfig().getBoolean("config.use") &&
-                SQL.openConnect();
+                Database.openConnect();
         if (status) {
-            if (Utils.saveAllPlayer() && Utils.unlockAllPlayer()) {
+            if (PlayerUtils.saveAllPlayer() && PlayerUtils.unlockAllPlayer()) {
                 getLogger().info(PTrans.a);
             }
-            if (!SQL.closeConnect()) getLogger().info("关闭数据库连接失败");
+            if (!Database.closeConnect()) getLogger().info("关闭数据库连接失败");
 
             Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTrans.k);
             Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + PTrans.l);
         }
     }
 
-    private Economy setupEconomy() {
-        RegisteredServiceProvider<Economy> economyProvider = getServer().
-                getServicesManager().
-                getRegistration(net.milkbowl.vault.economy.Economy.class);
-        return economyProvider.getProvider();
+    private boolean setupEconomy() {
+        RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+        if (economyProvider != null) {
+            economy = economyProvider.getProvider();
+        }
+
+        return (economy != null);
     }
 }
 

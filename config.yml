@@ -6,7 +6,6 @@ config:
 
 daily:
   use: true
-  show: true
   delay: 240
   min: 20
   

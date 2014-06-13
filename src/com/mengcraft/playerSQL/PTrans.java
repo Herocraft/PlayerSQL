@@ -2,33 +2,33 @@ package com.mengcraft.playerSQL;
 
 public class PTrans
 {
-	static String a;
-	static String b;
-	static String c;
-	static String d;
-	static String e;
-	static String f;
-	static String g;
-	static String o;
-	static String h;
-	static String i;
-	static String j;
-	static String k;
-	static String l;
-	static String m;
-	static String n;
+    public static String a;
+    public 	static String b;
+    public 	static String c;
+    public 	static String d;
+    public 	static String e;
+    public 	static String f;
+    public 	static String g;
+    public static String o;
+    public static String h;
+    public 	static String i;
+    public 	static String j;
+    public static String k;
+    public static String l;
+    public 	static String m;
+    public 	static String n;
 
-	static void translat()
+	static void translate()
 	{
-		if (Main.plugin.getConfig().getBoolean("config.english")) {
-			a = "Save all online players complate";
+		if (PlayerSQL.plugin.getConfig().getBoolean("config.english")) {
+			a = "Save all online players complete";
 			b = "Online: ";
 			c = " Players";
 			d = "Save player ";
 			e = "Load player ";
 			f = " success";
 			g = " failed";
-			h = "You don't hava playerSQL.admin permission";
+			h = "You don't have playerSQL.admin permission";
 			i = "Connect success";
 			j = "Check success";
 			k = "Thanks for download.";
