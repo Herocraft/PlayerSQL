@@ -35,8 +35,7 @@ public class PlayerSQL extends JavaPlugin implements Listener {
                 }
                 Plugin vault = getServer().getPluginManager().getPlugin("Vault");
                 if (vault != null) {
-                    String s = setupEconomy() ?
-                            "Hook to Vault success" : null;
+                    String s = setupEconomy() ? "Hook to Vault success" : null;
                     if (s != null) getLogger().info(s);
                 }
                 PlayerListener listener = new PlayerListener();

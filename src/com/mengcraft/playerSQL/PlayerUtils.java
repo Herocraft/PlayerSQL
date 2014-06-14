@@ -178,7 +178,7 @@ public class PlayerUtils {
 
     public static void setupPlayer(Player player) {
         String playerName = player.getName().toLowerCase();
-        String sql = "INSERT INTO PlayerSQL " + "(PlayerName) " + "VALUES ('" + playerName + "');";
+        String sql = "INSERT INTO PlayerSQL " + "(PlayerName, Locked) " + "VALUES ('" + playerName + "', 1);";
         try {
             Statement statement = Database.connection.createStatement();
             statement.executeUpdate(sql);
