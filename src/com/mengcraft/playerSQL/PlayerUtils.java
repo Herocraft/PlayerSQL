@@ -91,6 +91,7 @@ public class PlayerUtils {
         String endChestData = buildStacksData(endChestStacks);
 
         try {
+            Database.openConnect();
             Statement statement = Database.connection.createStatement();
             String sql = "UPDATE PlayerSQL " + "SET " +
                     "Economy = " + economy + ", " +
@@ -132,6 +133,7 @@ public class PlayerUtils {
         String sql = "SELECT Health, Food, Level, Exp, Armor, Inventory, EndChest, Economy "
                 + "FROM PlayerSQL WHERE PlayerName = '" + playerName + "';";
         try {
+            Database.openConnect();
             Statement statement = Database.connection.createStatement();
             ResultSet resultSet = statement.executeQuery(sql);
             boolean status = resultSet.next();
