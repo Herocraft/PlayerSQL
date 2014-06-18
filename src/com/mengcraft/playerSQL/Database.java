@@ -76,7 +76,7 @@ public class Database {
                 Statement statement = connection.createStatement();
                 String sql = "CREATE TABLE IF NOT EXISTS " + "PlayerSQL (" + "Id int NOT NULL AUTO_INCREMENT, "
                         + "PlayerName text, " + "Locked int, " + "Health int, " + "Food int, " + "Level int, "
-                        + "Exp text, " + "Armor text, " + "Economy double, " + "Inventory text, " + "EndChest text, " + "PRIMARY KEY (Id));";
+                        + "Armor text, " + "Economy double, " + "Inventory text, " + "EndChest text, " + "PRIMARY KEY (Id));";
                 statement.executeUpdate(sql);
                 statement.close();
                 return true;

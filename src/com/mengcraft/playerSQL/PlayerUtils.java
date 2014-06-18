@@ -68,8 +68,7 @@ public class PlayerUtils {
         String playerName = player.getName().toLowerCase();
         double health = player.getHealth();
         int food = player.getFoodLevel();
-        int level = player.getLevel();
-        float exp = player.getExp();
+        int exp = player.getTotalExperience();
 
         double economy = 0;
 
@@ -97,8 +96,7 @@ public class PlayerUtils {
                     "Economy = " + economy + ", " +
                     "Health = " + health + ", " +
                     "Food = " + food + ", " +
-                    "Level = " + level + ", " +
-                    "Exp = " + Float.toString(exp) + ", " +
+                    "Level = " + exp + ", " +
                     "Armor = '" + armorData + "', " +
                     "Inventory = '" + inventoryData + "', " +
                     "EndChest = '" + endChestData + "' " +
@@ -130,7 +128,7 @@ public class PlayerUtils {
 
     public static void loadPlayer(Player player) {
         String playerName = player.getName().toLowerCase();
-        String sql = "SELECT Health, Food, Level, Exp, Armor, Inventory, EndChest, Economy "
+        String sql = "SELECT Health, Food, Level, Armor, Inventory, EndChest, Economy "
                 + "FROM PlayerSQL WHERE PlayerName = '" + playerName + "';";
         try {
             Database.openConnect();
@@ -141,18 +139,19 @@ public class PlayerUtils {
                 double health = resultSet.getDouble(1);
                 double maxHealth = player.getMaxHealth();
                 int food = resultSet.getInt(2);
-                int level = resultSet.getInt(3);
-                float exp = resultSet.getFloat(4);
+                int exp = resultSet.getInt(3);
 
-                String armorData = resultSet.getString(5);
-                String inventoryData = resultSet.getString(6);
-                String endChestData = resultSet.getString(7);
+                String armorData = resultSet.getString(4);
+                String inventoryData = resultSet.getString(5);
+                String endChestData = resultSet.getString(6);
 
                 health = Math.min(health, maxHealth);
                 player.setHealth(health);
                 player.setFoodLevel(food);
-                player.setLevel(level);
-                player.setExp(exp);
+                player.setExp(0);
+                player.setLevel(0);
+                player.setTotalExperience(0);
+                player.giveExp(exp);
 
                 PlayerInventory inventory = player.getInventory();
                 Inventory endChest = player.getEnderChest();
@@ -164,7 +163,7 @@ public class PlayerUtils {
                 status = PlayerSQL.economy != null &&
                         PlayerSQL.plugin.getConfig().getBoolean("config.economy", true);
                 if (status) {
-                    double economy = resultSet.getDouble(8);
+                    double economy = resultSet.getDouble(7);
                     double playerEconomy = PlayerSQL.economy.getBalance(playerName);
                     if (economy > 0) {
                         if (economy > playerEconomy)
