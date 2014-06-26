@@ -4,6 +4,7 @@ import com.mengcraft.playerSQL.thread.PlayerDailyThread;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -60,6 +61,7 @@ public class PlayerSQL extends JavaPlugin implements Listener {
                 getConfig().getBoolean("config.use") &&
                 Database.openConnect();
         if (status) {
+            HandlerList.unregisterAll(plugin);
             PlayerUtils.saveAllPlayer();
             PlayerUtils.unlockAllPlayer();
             Database.closeConnect();
