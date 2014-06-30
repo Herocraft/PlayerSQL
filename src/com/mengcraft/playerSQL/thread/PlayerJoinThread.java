@@ -4,8 +4,11 @@ import com.mengcraft.playerSQL.PlayerSQL;
 import com.mengcraft.playerSQL.PlayerUtils;
 import org.bukkit.entity.Player;
 
+import java.sql.SQLException;
+
 public class PlayerJoinThread implements Runnable {
-    private Player player;
+
+    private final Player player;
 
     public PlayerJoinThread(Player player) {
         this.player = player;
@@ -13,11 +16,15 @@ public class PlayerJoinThread implements Runnable {
 
     @Override
     public void run() {
-        int lockStatus = PlayerUtils.getLockStatus(this.player);
+        int lockStatus = PlayerUtils.getLocked(this.player);
         switch (lockStatus) {
             case 0:
-                PlayerUtils.loadPlayer(player);
-                PlayerUtils.lockPlayer(player);
+                try {
+                    PlayerUtils.loadPlayer(player);
+                    PlayerUtils.lockPlayer(player);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
                 break;
             case 1: {
                 int i;
@@ -27,13 +34,18 @@ public class PlayerJoinThread implements Runnable {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    i = PlayerUtils.getLockStatus(player) == 0 ?
-                            4 : i;
+                    i = PlayerUtils.getLocked(player) == 0 ? 4 : i;
                 }
-                PlayerUtils.loadPlayer(player);
-                PlayerUtils.lockPlayer(player);
+                try {
+                    PlayerUtils.loadPlayer(player);
+                    PlayerUtils.lockPlayer(player);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
                 if (i == 4) {
-                    PlayerSQL.plugin.getLogger().warning("Waiting for unlock maximum time limit.");
+                    PlayerSQL.plugin.getLogger().warning("Waiting for unlock "
+                            + player.getName()
+                            + " maximum time limit.");
                     PlayerSQL.plugin.getLogger().warning("Report to me, thank you.");
                 }
                 break;

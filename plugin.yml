@@ -1,4 +1,4 @@
 name: PlayerSQL
 main: com.mengcraft.playerSQL.PlayerSQL
-version: 0.7.4.4
+version: 0.7.5
 softdepend: [Vault]

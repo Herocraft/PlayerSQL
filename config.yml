@@ -1,6 +1,5 @@
 config:
   use: false
-  english: false
   economy: true
 
 daily:

@@ -5,53 +5,50 @@ import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.mcstats.Metrics;
 
 import java.io.IOException;
 
-public class PlayerSQL extends JavaPlugin implements Listener {
-    public static Economy economy = null;
-    public static Plugin plugin;
+public class PlayerSQL extends JavaPlugin {
+    public static Economy economy;
+    public static PlayerSQL plugin;
 
     @Override
     public void onEnable() {
-        boolean status = getServer().getPluginManager().getPlugin("ProtocolLib") == null;
-        if (status) {
-            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[PlayerSQL] ProtocolLib NOT found!");
-            setEnabled(false);
-        } else {
+        if (getServer().getPluginManager().getPlugin("ProtocolLib") != null) {
             saveDefaultConfig();
             plugin = this;
-            status = getConfig().getBoolean("config.use") && Database.openConnect();
-            if (status) {
-                Database.createTables();
-                PlayerUtils.lockAllPlayer();
-                if (getConfig().getBoolean("daily.use")) {
-                    PlayerDailyThread thread = new PlayerDailyThread();
-                    getServer().getScheduler().runTaskAsynchronously(plugin, thread);
-                }
-                Plugin vault = getServer().getPluginManager().getPlugin("Vault");
-                if (vault != null) {
-                    String s = setupEconomy() ? "Hook to Vault success" : null;
-                    if (s != null) getLogger().info(s);
-                }
+            boolean config = getConfig().getBoolean("config.use")
+                    && Database.openConnect()
+                    && Database.createTables();
+            if (config) {
+                if (getConfig().getBoolean("config.economy")) setupEconomy();
+
                 PlayerListener listener = new PlayerListener();
-                getServer().getPluginManager().registerEvents(listener, plugin);
+                getServer().getPluginManager().registerEvents(listener, this);
+
+                PlayerUtils.lockPlayers();
+                if (getConfig().getBoolean("daily.use")) {
+                    int delay = getConfig().getInt("daily.delay") * 20;
+                    PlayerDailyThread thread = new PlayerDailyThread();
+                    getServer().getScheduler().runTaskTimerAsynchronously(this, thread, delay, delay);
+                }
                 try {
                     Metrics metrics = new Metrics(this);
                     metrics.start();
                     getLogger().info("Connect mcstats.org success");
                 } catch (IOException e) {
-                    getLogger().info("Failed to connect mcstats.org");
+                    getLogger().warning("Failed to connect mcstats.org");
                 }
             } else {
-                getLogger().info("Please check the config.yml");
+                getLogger().warning("Please check the config.yml");
                 setEnabled(false);
             }
+        } else {
+            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[PlayerSQL] ProtocolLib NOT found!");
+            setEnabled(false);
         }
     }
 
@@ -62,8 +59,8 @@ public class PlayerSQL extends JavaPlugin implements Listener {
                 Database.openConnect();
         if (status) {
             HandlerList.unregisterAll(plugin);
-            PlayerUtils.saveAllPlayer();
-            PlayerUtils.unlockAllPlayer();
+            PlayerUtils.savePlayers();
+            PlayerUtils.unlockPlayers();
             Database.closeConnect();
         }
     }

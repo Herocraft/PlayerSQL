@@ -3,7 +3,9 @@ package com.mengcraft.playerSQL.thread;
 import com.mengcraft.playerSQL.PlayerUtils;
 import org.bukkit.entity.Player;
 
-public class PlayerQuitThread implements Runnable{
+import java.sql.SQLException;
+
+public class PlayerQuitThread implements Runnable {
     private Player player;
 
     public PlayerQuitThread(Player player) {
@@ -12,7 +14,11 @@ public class PlayerQuitThread implements Runnable{
 
     @Override
     public void run() {
-        PlayerUtils.savePlayer(this.player);
-        PlayerUtils.unlockPlayer(this.player);
+        try {
+            PlayerUtils.savePlayer(this.player);
+            PlayerUtils.unlockPlayer(this.player);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

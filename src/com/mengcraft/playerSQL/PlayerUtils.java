@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 import java.io.IOException;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -64,18 +65,48 @@ public class PlayerUtils {
         } else return new ItemStack[]{new ItemStack(Material.AIR)};
     }
 
-    public static void savePlayer(Player player) {
+    public static void savePlayers() {
+        Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
+        if (players.length > 0) try {
+            String sql = "UPDATE PlayerSQL " + "SET " +
+                    "Economy = ?, " +
+                    "Health = ?, " +
+                    "Food = ?, " +
+                    "Level = ?, " +
+                    "Armor = ?, " +
+                    "Inventory = ?, " +
+                    "EndChest = ? " +
+                    "WHERE PlayerName = ?;";
+            PreparedStatement statement = Database.connection.prepareStatement(sql);
+            for (Player player : players) {
+                double economy = PlayerSQL.economy != null ? PlayerSQL.economy.getBalance(player.getName()) : 0;
+                ItemStack[] armorStacks = player.getInventory().getArmorContents();
+                ItemStack[] inventoryStacks = player.getInventory().getContents();
+                ItemStack[] endChestStacks = player.getEnderChest().getContents();
+                statement.setDouble(1, economy);
+                statement.setDouble(2, player.getHealth());
+                statement.setInt(3, player.getFoodLevel());
+                statement.setInt(4, player.getTotalExperience());
+                statement.setString(5, buildArmorDate(armorStacks));
+                statement.setString(6, buildStacksData(inventoryStacks));
+                statement.setString(7, buildStacksData(endChestStacks));
+                statement.setString(8, player.getName().toLowerCase());
+                statement.addBatch();
+            }
+            statement.executeBatch();
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void savePlayer(Player player) throws SQLException {
         String playerName = player.getName().toLowerCase();
         double health = player.getHealth();
         int food = player.getFoodLevel();
         int exp = player.getTotalExperience();
 
-        double economy = 0;
-
-        boolean status = PlayerSQL.economy != null &&
-                PlayerSQL.plugin.getConfig().getBoolean("config.economy", true);
-
-        if (status) economy = PlayerSQL.economy.getBalance(playerName);
+        double economy = PlayerSQL.economy != null ? PlayerSQL.economy.getBalance(playerName) : 0;
 
         PlayerInventory inventory = player.getInventory();
         Inventory endChest = player.getEnderChest();
@@ -89,98 +120,89 @@ public class PlayerUtils {
         ItemStack[] endChestStacks = endChest.getContents();
         String endChestData = buildStacksData(endChestStacks);
 
+        Database.openConnect();
+        Statement statement = Database.connection.createStatement();
+        String sql = "UPDATE PlayerSQL " + "SET " +
+                "Economy = " + economy + ", " +
+                "Health = " + health + ", " +
+                "Food = " + food + ", " +
+                "Level = " + exp + ", " +
+                "Armor = '" + armorData + "', " +
+                "Inventory = '" + inventoryData + "', " +
+                "EndChest = '" + endChestData + "' " +
+                "WHERE PlayerName = '" + playerName + "';";
+        statement.executeUpdate(sql);
+        statement.close();
+    }
+
+    public static int getLocked(Player player) {
         try {
-            Database.openConnect();
-            Statement statement = Database.connection.createStatement();
-            String sql = "UPDATE PlayerSQL " + "SET " +
-                    "Economy = " + economy + ", " +
-                    "Health = " + health + ", " +
-                    "Food = " + food + ", " +
-                    "Level = " + exp + ", " +
-                    "Armor = '" + armorData + "', " +
-                    "Inventory = '" + inventoryData + "', " +
-                    "EndChest = '" + endChestData + "' " +
-                    "WHERE PlayerName = '" + playerName + "';";
-            statement.executeUpdate(sql);
-            statement.close();
+            String sql = "SELECT Locked FROM PlayerSQL WHERE PlayerName = ?;";
+            PreparedStatement statement = Database.connection.prepareStatement(sql);
+            statement.setString(1, player.getName().toLowerCase());
+            ResultSet resultSet = statement.executeQuery();
+            int dataLock = resultSet.next() ? 0 : 2;
+            if (dataLock < 2) {
+                dataLock = resultSet.getInt(1);
+                resultSet.close();
+                statement.close();
+            }
+            return dataLock;
         } catch (SQLException e) {
             e.printStackTrace();
+            return -1;
         }
     }
 
-    public static int getLockStatus(Player player) {
-        String playerName = player.getName().toLowerCase();
-        String sql = "SELECT Locked FROM PlayerSQL WHERE PlayerName = '" + playerName + "';";
-        int dataLock = 0;
-        try {
-            Statement statement = Database.connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
-            dataLock = resultSet.next() ?
-                    0 : 2;
-            if (dataLock > 1) return 2;
-            dataLock = resultSet.getInt(1);
-            resultSet.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return dataLock;
-    }
-
-    public static void loadPlayer(Player player) {
-        String playerName = player.getName().toLowerCase();
+    public static void loadPlayer(Player player) throws SQLException {
+        String playerName = player.getName();
         String sql = "SELECT Health, Food, Level, Armor, Inventory, EndChest, Economy "
-                + "FROM PlayerSQL WHERE PlayerName = '" + playerName + "';";
-        try {
-            Database.openConnect();
-            Statement statement = Database.connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
-            boolean status = resultSet.next();
-            if (status) {
-                double health = resultSet.getDouble(1);
-                double maxHealth = player.getMaxHealth();
-                int food = resultSet.getInt(2);
-                int exp = resultSet.getInt(3);
+                + "FROM PlayerSQL WHERE PlayerName = '" + playerName.toLowerCase() + "';";
+        Database.openConnect();
+        Statement statement = Database.connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
+        boolean status = resultSet.next();
+        if (status) {
+            double health = resultSet.getDouble(1);
+            double maxHealth = player.getMaxHealth();
+            int food = resultSet.getInt(2);
+            int exp = resultSet.getInt(3);
 
-                String armorData = resultSet.getString(4);
-                String inventoryData = resultSet.getString(5);
-                String endChestData = resultSet.getString(6);
+            String armorData = resultSet.getString(4);
+            String inventoryData = resultSet.getString(5);
+            String endChestData = resultSet.getString(6);
 
-                health = Math.min(health, maxHealth);
-                player.setHealth(health);
-                player.setFoodLevel(food);
-                player.setExp(0);
-                player.setLevel(0);
-                player.setTotalExperience(0);
-                player.giveExp(exp);
+            health = Math.min(health, maxHealth);
+            player.setHealth(health);
+            player.setFoodLevel(food);
+            player.setExp(0);
+            player.setLevel(0);
+            player.setTotalExperience(0);
+            player.giveExp(exp);
 
-                PlayerInventory inventory = player.getInventory();
-                Inventory endChest = player.getEnderChest();
+            PlayerInventory inventory = player.getInventory();
+            Inventory endChest = player.getEnderChest();
 
-                inventory.setArmorContents(restoreStacks(armorData));
-                inventory.setContents(restoreStacks(inventoryData));
-                endChest.setContents(restoreStacks(endChestData));
+            inventory.setArmorContents(restoreStacks(armorData));
+            inventory.setContents(restoreStacks(inventoryData));
+            endChest.setContents(restoreStacks(endChestData));
 
-                status = PlayerSQL.economy != null &&
-                        PlayerSQL.plugin.getConfig().getBoolean("config.economy", true);
-                if (status) {
-                    double economy = resultSet.getDouble(7);
-                    double playerEconomy = PlayerSQL.economy.getBalance(playerName);
-                    if (economy > 0) {
-                        if (economy > playerEconomy)
-                            PlayerSQL.economy.depositPlayer(playerName, economy - playerEconomy);
-                        else PlayerSQL.economy.withdrawPlayer(playerName, playerEconomy - economy);
-                    }
+            if (PlayerSQL.economy != null) {
+                double economy = resultSet.getDouble(7);
+                double playerEconomy = PlayerSQL.economy.getBalance(playerName);
+                if (economy > 0) {
+                    if (economy > playerEconomy)
+                        PlayerSQL.economy.depositPlayer(playerName, economy - playerEconomy);
+                    else PlayerSQL.economy.withdrawPlayer(playerName, playerEconomy - economy);
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
     public static void setupPlayer(Player player) {
-        String playerName = player.getName().toLowerCase();
-        String sql = "INSERT INTO PlayerSQL " + "(PlayerName, Locked) " + "VALUES ('" + playerName + "', 1);";
         try {
+            String playerName = player.getName().toLowerCase();
+            String sql = "INSERT INTO PlayerSQL " + "(PlayerName, Locked) " + "VALUES ('" + playerName + "', 1);";
             Statement statement = Database.connection.createStatement();
             statement.executeUpdate(sql);
             statement.close();
@@ -189,44 +211,51 @@ public class PlayerUtils {
         }
     }
 
-    public static boolean lockPlayer(Player player) {
+    public static void lockPlayer(Player player) throws SQLException {
         String playerName = player.getName().toLowerCase();
-        try {
-            Statement statement = Database.connection.createStatement();
-            String sql = "UPDATE PlayerSQL " + "SET Locked = 1 " + "WHERE PlayerName = '" + playerName + "';";
-            statement.executeUpdate(sql);
+        Statement statement = Database.connection.createStatement();
+        String sql = "UPDATE PlayerSQL " + "SET Locked = 1 " + "WHERE PlayerName = '" + playerName + "';";
+        statement.executeUpdate(sql);
+        statement.close();
+    }
+
+    public static void lockPlayers() {
+        Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
+        if (players.length > 0) try {
+            String sql = "UPDATE PlayerSQL SET Locked = 1 WHERE PlayerName = ?;";
+            PreparedStatement statement = Database.connection.prepareStatement(sql);
+            for (Player player : players) {
+                statement.setString(1, player.getName().toLowerCase());
+                statement.addBatch();
+            }
+            statement.executeBatch();
             statement.close();
-            return true;
         } catch (SQLException e) {
-            return false;
+            e.printStackTrace();
         }
     }
 
-    public static void unlockPlayer(Player player) {
+    public static void unlockPlayer(Player player) throws SQLException {
         String playerName = player.getName().toLowerCase();
-        try {
-            Statement statement = Database.connection.createStatement();
-            String sql = "UPDATE PlayerSQL " + "SET Locked = 0 " + "WHERE PlayerName = '" + playerName + "';";
-            statement.executeUpdate(sql);
+        Statement statement = Database.connection.createStatement();
+        String sql = "UPDATE PlayerSQL " + "SET Locked = 0 " + "WHERE PlayerName = '" + playerName + "';";
+        statement.executeUpdate(sql);
+        statement.close();
+    }
+
+    public static void unlockPlayers() {
+        Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
+        if (players.length > 0) try {
+            String sql = "UPDATE PlayerSQL " + "SET Locked = 0 " + "WHERE PlayerName = ?;";
+            PreparedStatement statement = Database.connection.prepareStatement(sql);
+            for (Player player : players) {
+                statement.setString(1, player.getName().toLowerCase());
+                statement.addBatch();
+            }
+            statement.executeBatch();
             statement.close();
         } catch (SQLException e) {
-            PlayerSQL.plugin.getLogger().info("Failed to unlock the player " + playerName);
-            PlayerSQL.plugin.getLogger().info("This type of mistake is strange :(");
+            e.printStackTrace();
         }
-    }
-
-    public static void lockAllPlayer() {
-        Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
-        for (Player player : players) lockPlayer(player);
-    }
-
-    public static void unlockAllPlayer() {
-        Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
-        for (Player player : players) unlockPlayer(player);
-    }
-
-    public static void saveAllPlayer() {
-        Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
-        for (Player player : players) savePlayer(player);
     }
 }
