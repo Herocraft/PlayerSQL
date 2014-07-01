@@ -1,6 +1,7 @@
 package com.mengcraft.playerSQL;
 
 import com.comphenix.protocol.utility.StreamSerializer;
+import com.earth2me.essentials.craftbukkit.SetExpFix;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -101,12 +102,8 @@ public class PlayerUtils {
     }
 
     public static void savePlayer(Player player) throws SQLException {
-        String playerName = player.getName().toLowerCase();
-        double health = player.getHealth();
-        int food = player.getFoodLevel();
-        int exp = player.getTotalExperience();
 
-        double economy = PlayerSQL.economy != null ? PlayerSQL.economy.getBalance(playerName) : 0;
+        double economy = PlayerSQL.economy != null ? PlayerSQL.economy.getBalance(player.getName()) : 0;
 
         PlayerInventory inventory = player.getInventory();
         Inventory endChest = player.getEnderChest();
@@ -124,13 +121,13 @@ public class PlayerUtils {
         Statement statement = Database.connection.createStatement();
         String sql = "UPDATE PlayerSQL " + "SET " +
                 "Economy = " + economy + ", " +
-                "Health = " + health + ", " +
-                "Food = " + food + ", " +
-                "Level = " + exp + ", " +
+                "Health = " + player.getHealth() + ", " +
+                "Food = " + player.getFoodLevel() + ", " +
+                "Level = " + SetExpFix.getTotalExperience(player) + ", " +
                 "Armor = '" + armorData + "', " +
                 "Inventory = '" + inventoryData + "', " +
                 "EndChest = '" + endChestData + "' " +
-                "WHERE PlayerName = '" + playerName + "';";
+                "WHERE PlayerName = '" + player.getName().toLowerCase() + "';";
         statement.executeUpdate(sql);
         statement.close();
     }
@@ -175,10 +172,7 @@ public class PlayerUtils {
             health = Math.min(health, maxHealth);
             player.setHealth(health);
             player.setFoodLevel(food);
-            player.setExp(0);
-            player.setLevel(0);
-            player.setTotalExperience(0);
-            player.giveExp(exp);
+            SetExpFix.setTotalExperience(player, exp);
 
             PlayerInventory inventory = player.getInventory();
             Inventory endChest = player.getEnderChest();
