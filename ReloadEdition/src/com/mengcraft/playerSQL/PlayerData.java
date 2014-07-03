@@ -129,7 +129,8 @@ public class PlayerData {
         double health = Double.parseDouble(values[0]);
         int food = Integer.parseInt(values[1]);
         int exp = Integer.parseInt(values[2]);
-        if (health != -1) player.setHealth(health);
+        if (player.getHealth() < 1) player.spigot().respawn();
+        if (health > 0) player.setHealth(health);
         if (food != -1) player.setFoodLevel(food);
         if (exp != -1) SetExpFix.setTotalExperience(player, exp);
         if (values[3].length() > 4) {

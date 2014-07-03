@@ -38,17 +38,4 @@ public class SetExpFix {
         }
         return 17;
     }
-
-    public static int getTotalExperience(Player player) {
-        int exp = Math.round(getExpAtLevel(player) * player.getExp());
-        int currentLevel = player.getLevel();
-        while (currentLevel > 0) {
-            currentLevel--;
-            exp += getExpAtLevel(currentLevel);
-        }
-        if (exp < 0) {
-            exp = 2147483647;
-        }
-        return exp;
-    }
 }
