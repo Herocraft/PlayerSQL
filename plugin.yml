@@ -1,8 +1,0 @@
-name: PlayerSQL
-version: 0.7.6
-description: Synchronize data between servers
-author: min梦梦
-website: http://www.spigotmc.org/resources/playersql.552/
-
-main: com.mengcraft.playerSQL.PlayerSQL
-softdepend: [Vault]
