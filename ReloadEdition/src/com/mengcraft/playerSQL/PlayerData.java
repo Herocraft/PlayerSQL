@@ -2,9 +2,12 @@ package com.mengcraft.playerSQL;
 
 import com.comphenix.protocol.utility.StreamSerializer;
 import com.earth2me.essentials.craftbukkit.SetExpFix;
+import com.google.common.collect.ImmutableMap;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.craftbukkit.libs.com.google.gson.*;
+import org.bukkit.craftbukkit.libs.com.google.gson.Gson;
+import org.bukkit.craftbukkit.libs.com.google.gson.JsonArray;
+import org.bukkit.craftbukkit.libs.com.google.gson.JsonElement;
+import org.bukkit.craftbukkit.libs.com.google.gson.reflect.TypeToken;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -12,18 +15,20 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class PlayerData {
     private final Player player;
     private final String name;
+
     private int task = -1;
-    private String data = null;
 
     public PlayerData(Player player) {
         String getVersion = player.getServer().getBukkitVersion().split("-")[0].substring(0, 3);
@@ -35,22 +40,6 @@ public class PlayerData {
 
     public String getName() {
         return name;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public void update() {
-        ConfigurationSection getConfig = PlayerSQL.plugin.getConfig().getConfigurationSection("sync");
-        double health = getConfig.getBoolean("health", true) ? player.getHealth() : -1;
-        int food = getConfig.getBoolean("food", true) ? player.getFoodLevel() : -1;
-        int exp = getConfig.getBoolean("exp", true) ? player.getTotalExperience() : -1;
-        String inventory = getConfig.getBoolean("inventory", true) ? getStacksData(player.getInventory().getContents()) : null;
-        String armor = getConfig.getBoolean("inventory", true) ? getStacksData(player.getInventory().getArmorContents()) : null;
-        String enderChest = getConfig.getBoolean("enderChest", true) ? getStacksData(player.getEnderChest().getContents()) : null;
-        String potion = getConfig.getBoolean("potion", true) ? getPotions() : null;
-        data = health + ";" + food + ";" + exp + ";" + inventory + ";" + armor + ";" + enderChest + ";" + potion;
     }
 
     public void load() {
@@ -66,7 +55,8 @@ public class PlayerData {
                     Boolean next = result.next();
                     if (next) {
                         final String data = result.getString(1);
-                        setData(data);
+                        JsonArray json = new Gson().fromJson(data, JsonElement.class).getAsJsonArray();
+                        setPlayer(json);
                     } else setup();
                     statement.close();
                     result.close();
@@ -77,12 +67,17 @@ public class PlayerData {
         }.runTaskLaterAsynchronously(PlayerSQL.plugin, 5);
     }
 
+    public String getData() {
+        return getJsonString();
+    }
+
     public void save() {
         try {
             String sql = "UPDATE PlayerSQL " +
                     "SET DATA = ? " +
                     "WHERE NAME = ?;";
             PreparedStatement statement = PlayerSQL.database.prepareStatement(sql);
+            String data = getJsonString();
             statement.setString(1, data);
             statement.setString(2, name);
             statement.executeUpdate();
@@ -92,12 +87,33 @@ public class PlayerData {
         }
     }
 
+    private String getJsonString() {
+        Gson gson = new Gson();
+        JsonArray array = new JsonArray();
+        double health = player.getHealth();
+        int food = player.getFoodLevel();
+        int exp = SetExpFix.getTotalExperience(player);
+        ItemStack[] inventory = player.getInventory().getContents();
+        ItemStack[] armor = player.getInventory().getArmorContents();
+        ItemStack[] chest = player.getEnderChest().getContents();
+        JsonElement[] elements = {
+                gson.toJsonTree(health),
+                gson.toJsonTree(food),
+                gson.toJsonTree(exp),
+                getStacksData(inventory),
+                getStacksData(armor),
+                getStacksData(chest),
+                getPotions()
+        };
+        for (JsonElement element : elements) array.add(element);
+        return gson.toJson(array);
+    }
+
     public void startDaily() {
         if (task < 0) {
             this.task = new BukkitRunnable() {
                 @Override
                 public void run() {
-                    update();
                     save();
                 }
             }.runTaskTimer(PlayerSQL.plugin, 6000, 6000).getTaskId();
@@ -108,6 +124,104 @@ public class PlayerData {
         if (task > 0) {
             PlayerSQL.plugin.getServer().getScheduler().cancelTask(task);
             task = -1;
+        }
+    }
+
+    private void setPlayer(JsonArray json) {
+        setHealth(json);
+        setFood(json);
+        setExp(json);
+        setInventory(json);
+        setChest(json);
+        setPotion(json);
+    }
+
+    private JsonArray getPotions() {
+        Gson gson = new Gson();
+        JsonArray array = new JsonArray();
+        Collection<PotionEffect> active = player.getActivePotionEffects();
+        if (active.size() > 0) {
+            Type type = new TypeToken<ImmutableMap<String, Object>>() {
+            }.getType();
+            for (PotionEffect effect : active) {
+                Map<String, Object> map = effect.serialize();
+                JsonElement element = gson.toJsonTree(map, type);
+                array.add(element);
+            }
+        }
+        return array;
+    }
+
+    private void setPotion(JsonArray array) {
+        boolean sync = PlayerSQL.plugin.getConfig().getBoolean("sync.potion", true);
+        if (sync) {
+            Collection<PotionEffect> active = player.getActivePotionEffects();
+            for (PotionEffect effect : active) {
+                PotionEffectType type = effect.getType();
+                player.removePotionEffect(type);
+            }
+            JsonArray potion = array.get(6).getAsJsonArray();
+            if (potion.size() > 0) {
+                Gson gson = new Gson();
+                Type type = new TypeToken<ImmutableMap<String, Object>>() {
+                }.getType();
+                for (JsonElement element : potion) {
+                    Map<String, Object> map = gson.fromJson(element, type);
+                    PotionEffect effect = new PotionEffect(map);
+                    player.addPotionEffect(effect, true);
+                }
+            }
+        }
+    }
+
+    private void setChest(JsonArray array) {
+        boolean sync = PlayerSQL.plugin.getConfig().getBoolean("sync.enderChest", true);
+        if (sync) {
+            JsonArray chest = array.get(5).getAsJsonArray();
+            ItemStack[] stacks = getStacks(chest);
+            player.getEnderChest().setContents(stacks);
+        }
+    }
+
+    private void setInventory(JsonArray array) {
+        boolean sync = PlayerSQL.plugin.getConfig().getBoolean("sync.inventory", true);
+        if (sync) {
+            JsonArray inventory = array.get(3).getAsJsonArray();
+            JsonArray armor = array.get(4).getAsJsonArray();
+            ItemStack[] inventoryStacks = getStacks(inventory);
+            ItemStack[] armorStacks = getStacks(armor);
+            player.getInventory().setContents(inventoryStacks);
+            player.getInventory().setArmorContents(armorStacks);
+        }
+    }
+
+
+    private void setExp(JsonArray array) {
+        boolean sync = PlayerSQL.plugin.getConfig().getBoolean("sync.exp", true);
+        if (sync) {
+            int exp = array.get(2).getAsInt();
+            SetExpFix.setTotalExperience(player, exp);
+        }
+    }
+
+    private void setFood(JsonArray array) {
+        boolean sync = PlayerSQL.plugin.getConfig().getBoolean("sync.food", true);
+        if (sync) {
+            int food = array.get(1).getAsInt();
+            player.setFoodLevel(food);
+        }
+    }
+
+    private void setHealth(JsonArray array) {
+        boolean sync = PlayerSQL.plugin.getConfig().getBoolean("sync.health", true);
+        if (sync) {
+            double health = array.get(0).getAsDouble();
+            try {
+                player.setHealth(health);
+            } catch (IllegalArgumentException e) {
+                health = player.getMaxHealth();
+                player.setHealth(health);
+            }
         }
     }
 
@@ -124,69 +238,11 @@ public class PlayerData {
         }
     }
 
-    private void setData(String data) {
-        String[] values = data.split(";");
-        double health = Double.parseDouble(values[0]);
-        int food = Integer.parseInt(values[1]);
-        int exp = Integer.parseInt(values[2]);
-        if (player.getHealth() < 1) player.spigot().respawn();
-        if (health > 0) player.setHealth(health);
-        if (food != -1) player.setFoodLevel(food);
-        if (exp != -1) SetExpFix.setTotalExperience(player, exp);
-        if (values[3].length() > 4) {
-            ItemStack[] stacks = getStacks(values[3]);
-            player.getInventory().setContents(stacks);
-        }
-        if (values[4].length() > 4) {
-            ItemStack[] stacks = getStacks(values[4]);
-            player.getInventory().setArmorContents(stacks);
-        }
-        if (values[5].length() > 4) {
-            ItemStack[] stacks = getStacks(values[5]);
-            player.getEnderChest().setContents(stacks);
-        }
-        if (values[6].length() > 4) setPotions(values[6]);
-    }
-
-    private void setPotions(String data) {
-        JsonArray array = new Gson().fromJson(data, JsonElement.class).getAsJsonArray();
-        Collection<PotionEffect> activeEffects = player.getActivePotionEffects();
-        for (PotionEffect activeEffect : activeEffects) {
-            PotionEffectType getType = activeEffect.getType();
-            player.removePotionEffect(getType);
-        }
-        for (JsonElement element : array) {
-            JsonObject object = element.getAsJsonObject();
-            String type = object.get("type").getAsString();
-            int durability = object.get("durability").getAsInt();
-            int amplifier = object.get("amplifier").getAsInt();
-            player.addPotionEffect(new PotionEffect(PotionEffectType.getByName(type), durability, amplifier), true);
-        }
-    }
-
-    private String getPotions() {
-        JsonArray array = new JsonArray();
-        Gson gson = new Gson();
-        Collection<PotionEffect> effects = player.getActivePotionEffects();
-        for (PotionEffect effect : effects) {
-            JsonObject object = new JsonObject();
-            String type = effect.getType().getName();
-            int durability = effect.getDuration();
-            int amplifier = effect.getAmplifier();
-            object.add("type", gson.toJsonTree(type));
-            object.add("durability", gson.toJsonTree(durability));
-            object.add("amplifier", gson.toJsonTree(amplifier));
-            array.add(object);
-        }
-        return array.toString();
-    }
-
-    private ItemStack[] getStacks(String data) {
-        List<ItemStack> stackList = new ArrayList<>();
+    private ItemStack[] getStacks(JsonArray inventory) {
         StreamSerializer serializer = StreamSerializer.getDefault();
-        JsonArray array = new Gson().fromJson(data, JsonElement.class).getAsJsonArray();
+        List<ItemStack> stackList = new ArrayList<>();
         try {
-            for (JsonElement element : array) {
+            for (JsonElement element : inventory) {
                 boolean isJsonNull = element.isJsonNull();
                 if (isJsonNull) {
                     ItemStack stack = new ItemStack(Material.AIR);
@@ -200,11 +256,11 @@ public class PlayerData {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        ItemStack[] stacks = {};
-        return stackList.toArray(stacks);
+        int size = stackList.size();
+        return stackList.toArray(new ItemStack[size]);
     }
 
-    private String getStacksData(ItemStack[] stacks) {
+    private JsonArray getStacksData(ItemStack[] stacks) {
         JsonArray array = new JsonArray();
         Gson gson = new Gson();
         StreamSerializer serializer = StreamSerializer.getDefault();
@@ -222,6 +278,6 @@ public class PlayerData {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return array.toString();
+        return array;
     }
 }

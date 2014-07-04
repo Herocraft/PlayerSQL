@@ -24,7 +24,6 @@ public class PlayerManager {
                 PreparedStatement statement = PlayerSQL.database.prepareStatement(sql);
                 for (Player player : players) {
                     PlayerData playerData = PlayerManager.get(player);
-                    playerData.update();
                     String name = playerData.getName();
                     String data = playerData.getData();
                     statement.setString(1, data);
@@ -36,7 +35,6 @@ public class PlayerManager {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
@@ -47,6 +45,11 @@ public class PlayerManager {
             playerMap.put(player, playerData);
         }
         return playerData;
+    }
+
+    public static void remove(Player player) {
+        boolean containsKey = playerMap.containsKey(player);
+        if (containsKey) playerMap.remove(player);
     }
 
     public static void clear() {

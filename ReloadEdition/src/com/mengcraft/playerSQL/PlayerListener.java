@@ -12,14 +12,16 @@ public class PlayerListener implements Listener {
     public void playerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         PlayerData playerData = PlayerManager.get(player);
-        playerData.update();
         playerData.save();
         playerData.stopDaily();
+        PlayerManager.remove(player);
     }
 
     @EventHandler
     public void playerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        boolean isDead = player.isDead();
+        if (isDead) player.spigot().respawn();
         PlayerData getPlayer = PlayerManager.get(player);
         getPlayer.load();
         getPlayer.startDaily();

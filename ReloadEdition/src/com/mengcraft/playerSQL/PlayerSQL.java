@@ -54,18 +54,6 @@ public class PlayerSQL extends JavaPlugin {
         getLogger().info("插件作者: min梦梦");
     }
 
-    private void setTables() throws SQLException {
-        String sql = "CREATE TABLE IF NOT EXISTS PlayerSQL(" +
-                "ID int NOT NULL AUTO_INCREMENT, " +
-                "NAME text NULL, " +
-                "DATA text NULL, " +
-                "PRIMARY KEY(ID)" +
-                ");";
-        Statement statement = database.createStatement();
-        statement.executeUpdate(sql);
-        statement.close();
-    }
-
     public void setDatabase() throws SQLException {
         String driver = getConfig().getString("plugin.driver");
         String database = getConfig().getString("plugin.database");
@@ -77,5 +65,17 @@ public class PlayerSQL extends JavaPlugin {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    private void setTables() throws SQLException {
+        String sql = "CREATE TABLE IF NOT EXISTS PlayerSQL(" +
+                "ID int NOT NULL AUTO_INCREMENT, " +
+                "NAME text NULL, " +
+                "DATA text NULL, " +
+                "PRIMARY KEY(ID)" +
+                ");";
+        Statement statement = database.createStatement();
+        statement.executeUpdate(sql);
+        statement.close();
     }
 }
