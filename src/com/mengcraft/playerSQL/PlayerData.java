@@ -4,10 +4,7 @@ import com.comphenix.protocol.utility.StreamSerializer;
 import com.earth2me.essentials.craftbukkit.SetExpFix;
 import com.google.common.collect.ImmutableMap;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.libs.com.google.gson.Gson;
-import org.bukkit.craftbukkit.libs.com.google.gson.JsonArray;
-import org.bukkit.craftbukkit.libs.com.google.gson.JsonElement;
-import org.bukkit.craftbukkit.libs.com.google.gson.reflect.TypeToken;
+import org.bukkit.craftbukkit.libs.com.google.gson.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -15,7 +12,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -55,7 +51,7 @@ public class PlayerData {
                     Boolean next = result.next();
                     if (next) {
                         final String data = result.getString(1);
-                        JsonArray json = new Gson().fromJson(data, JsonElement.class).getAsJsonArray();
+                        JsonArray json = new JsonParser().parse(data).getAsJsonArray();
                         setPlayer(json);
                     } else setup();
                     statement.close();
@@ -141,11 +137,9 @@ public class PlayerData {
         JsonArray array = new JsonArray();
         Collection<PotionEffect> active = player.getActivePotionEffects();
         if (active.size() > 0) {
-            Type type = new TypeToken<ImmutableMap<String, Object>>() {
-            }.getType();
             for (PotionEffect effect : active) {
                 Map<String, Object> map = effect.serialize();
-                JsonElement element = gson.toJsonTree(map, type);
+                JsonElement element = gson.toJsonTree(map);
                 array.add(element);
             }
         }
@@ -162,13 +156,15 @@ public class PlayerData {
             }
             JsonArray potion = array.get(6).getAsJsonArray();
             if (potion.size() > 0) {
-                Gson gson = new Gson();
-                Type type = new TypeToken<ImmutableMap<String, Object>>() {
-                }.getType();
                 for (JsonElement element : potion) {
-                    Map<String, Object> map = gson.fromJson(element, type);
-                    PotionEffect effect = new PotionEffect(map);
-                    player.addPotionEffect(effect, true);
+                    JsonObject object = element.getAsJsonObject();
+                    Map<String, Object> map = ImmutableMap.<String, Object>of(
+                            "effect", object.get("effect").getAsInt(),
+                            "duration", object.get("duration").getAsInt(),
+                            "amplifier", object.get("amplifier").getAsInt(),
+                            "ambient", object.get("ambient").getAsBoolean()
+                    );
+                    player.addPotionEffect(new PotionEffect(map), true);
                 }
             }
         }
