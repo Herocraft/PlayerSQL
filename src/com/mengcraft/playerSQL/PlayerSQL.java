@@ -6,9 +6,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.mcstats.Metrics;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -20,30 +20,33 @@ public class PlayerSQL extends JavaPlugin {
     public static Connection database;
 
     @Override
+    public void onLoad() {
+        plugin = this;
+    }
+
+    @Override
     public void onEnable() {
         saveDefaultConfig();
         boolean use = getConfig().getBoolean("plugin.use");
         if (use) {
             try {
-                plugin = this;
                 setDatabase();
                 setTables();
-                PlayerManager.setup();
+                new KeepConnectTask().runTaskTimer(this, 6000, 6000);
                 getServer().getPluginManager().registerEvents(new PlayerListener(), this);
-                try {
-                    Metrics metrics = new Metrics(this);
-                    metrics.start();
-                } catch (IOException e) {
-                    getLogger().warning("Failed to connect to Metrics");
-                    getLogger().warning("Failed to connect to Metrics");
-                }
                 getLogger().info("Author: min梦梦");
                 getLogger().info("插件作者: min梦梦");
-            } catch (SQLException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
                 getLogger().warning("Failed to connect to database");
                 getLogger().warning("Please modify config.yml!!!!!");
                 getServer().getPluginManager().disablePlugin(this);
+            }
+            try {
+                Metrics metrics = new Metrics(this);
+                metrics.start();
+            } catch (Exception e) {
+                getLogger().warning("Failed to connect to mcstats.org");
+                getLogger().warning("Failed to connect to mcstats.org");
             }
         } else {
             getLogger().warning("Please modify config.yml!!!!!");
@@ -102,6 +105,17 @@ public class PlayerSQL extends JavaPlugin {
             PlayerData getPlayer = PlayerManager.get(player);
             getPlayer.load();
             getPlayer.startDaily();
+        }
+    }
+
+    public class KeepConnectTask extends BukkitRunnable {
+        @Override
+        public void run() {
+            try {
+                setTables();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

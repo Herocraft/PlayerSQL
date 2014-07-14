@@ -8,11 +8,7 @@ import java.util.HashMap;
 
 public class PlayerManager {
 
-    private static HashMap<Player, PlayerData> playerMap;
-
-    public static void setup() {
-        playerMap = new HashMap<>();
-    }
+    private static HashMap<Player, PlayerData> playerMap = new HashMap<>();
 
     public static void saveAll() {
         Player[] players = PlayerSQL.plugin.getServer().getOnlinePlayers();
