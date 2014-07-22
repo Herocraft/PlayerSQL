@@ -2,7 +2,6 @@ package com.mengcraft.playerSQL;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -16,8 +15,8 @@ import java.sql.Statement;
 
 public class PlayerSQL extends JavaPlugin {
 
-    public static PlayerSQL plugin;
-    public static Connection database;
+    public static PlayerSQL plugin = null;
+    public static Connection connection = null;
 
     @Override
     public void onLoad() {
@@ -30,10 +29,13 @@ public class PlayerSQL extends JavaPlugin {
         boolean use = getConfig().getBoolean("plugin.use");
         if (use) {
             try {
-                setDatabase();
+                setConnection();
                 setTables();
-                new KeepConnectTask().runTaskTimer(this, 6000, 6000);
-                getServer().getPluginManager().registerEvents(new PlayerListener(), this);
+                new CheckConnectionTask().runTaskTimer(this,
+                        getConfig().getInt("plugin.check", 3000),
+                        getConfig().getInt("plugin.check", 3000)
+                );
+                getServer().getPluginManager().registerEvents(new Listener(), this);
                 getLogger().info("Author: min梦梦");
                 getLogger().info("插件作者: min梦梦");
             } catch (Exception e) {
@@ -62,14 +64,14 @@ public class PlayerSQL extends JavaPlugin {
         getLogger().info("插件作者: min梦梦");
     }
 
-    public void setDatabase() throws SQLException {
+    private void setConnection() throws SQLException {
         String driver = getConfig().getString("plugin.driver");
-        String database = getConfig().getString("plugin.database");
+        String database = getConfig().getString("plugin.connection");
         String username = getConfig().getString("plugin.username");
         String password = getConfig().getString("plugin.password");
         try {
             Class.forName(driver);
-            PlayerSQL.database = DriverManager.getConnection(database, username, password);
+            PlayerSQL.connection = DriverManager.getConnection(database, username, password);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -82,12 +84,21 @@ public class PlayerSQL extends JavaPlugin {
                 "DATA text NULL, " +
                 "PRIMARY KEY(ID)" +
                 ");";
-        Statement statement = database.createStatement();
+        Statement statement = connection.createStatement();
         statement.executeUpdate(sql);
         statement.close();
     }
 
-    public class PlayerListener implements Listener {
+    private void checkConnection() throws SQLException {
+        if (connection != null) {
+            boolean isClosed = connection.isClosed();
+            if (isClosed) {
+                setConnection();
+            }
+        }
+    }
+
+    public class Listener implements org.bukkit.event.Listener {
         @EventHandler
         public void playerQuit(PlayerQuitEvent event) {
             Player player = event.getPlayer();
@@ -108,11 +119,11 @@ public class PlayerSQL extends JavaPlugin {
         }
     }
 
-    public class KeepConnectTask extends BukkitRunnable {
+    public class CheckConnectionTask extends BukkitRunnable {
         @Override
         public void run() {
             try {
-                setTables();
+                checkConnection();
             } catch (SQLException e) {
                 e.printStackTrace();
             }

@@ -17,7 +17,7 @@ public class PlayerManager {
                 String sql = "UPDATE PlayerSQL " +
                         "SET DATA = ? " +
                         "WHERE NAME = ?;";
-                PreparedStatement statement = PlayerSQL.database.prepareStatement(sql);
+                PreparedStatement statement = PlayerSQL.connection.prepareStatement(sql);
                 for (Player player : players) {
                     PlayerData playerData = PlayerManager.get(player);
                     String name = playerData.getName();

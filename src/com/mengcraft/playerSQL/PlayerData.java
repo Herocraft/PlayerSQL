@@ -45,7 +45,7 @@ public class PlayerData {
                 try {
                     String sql = "SELECT DATA FROM PlayerSQL " +
                             "WHERE NAME = ? FOR UPDATE;";
-                    PreparedStatement statement = PlayerSQL.database.prepareStatement(sql);
+                    PreparedStatement statement = PlayerSQL.connection.prepareStatement(sql);
                     statement.setString(1, name);
                     ResultSet result = statement.executeQuery();
                     Boolean next = result.next();
@@ -72,7 +72,7 @@ public class PlayerData {
             String sql = "UPDATE PlayerSQL " +
                     "SET DATA = ? " +
                     "WHERE NAME = ?;";
-            PreparedStatement statement = PlayerSQL.database.prepareStatement(sql);
+            PreparedStatement statement = PlayerSQL.connection.prepareStatement(sql);
             String data = getJsonString();
             statement.setString(1, data);
             statement.setString(2, name);
@@ -225,7 +225,7 @@ public class PlayerData {
         try {
             String sql = "INSERT INTO PlayerSQL(NAME) " +
                     "VALUES(?);";
-            PreparedStatement statement = PlayerSQL.database.prepareStatement(sql);
+            PreparedStatement statement = PlayerSQL.connection.prepareStatement(sql);
             statement.setString(1, name);
             statement.executeUpdate();
             statement.close();
