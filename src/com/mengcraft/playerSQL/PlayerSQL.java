@@ -64,15 +64,15 @@ public class PlayerSQL extends JavaPlugin {
         getLogger().info("插件作者: min梦梦");
     }
 
-    private void setConnection() throws SQLException {
+    private void setConnection(){
         String driver = getConfig().getString("plugin.driver");
-        String database = getConfig().getString("plugin.connection");
+        String database = getConfig().getString("plugin.database");
         String username = getConfig().getString("plugin.username");
         String password = getConfig().getString("plugin.password");
         try {
             Class.forName(driver);
             PlayerSQL.connection = DriverManager.getConnection(database, username, password);
-        } catch (ClassNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
