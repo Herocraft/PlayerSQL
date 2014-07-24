@@ -50,9 +50,11 @@ public class PlayerData {
                     ResultSet result = statement.executeQuery();
                     Boolean next = result.next();
                     if (next) {
-                        final String data = result.getString(1);
-                        JsonArray json = new JsonParser().parse(data).getAsJsonArray();
-                        setPlayer(json);
+                        String data = result.getString(1);
+                        if (data != null) {
+                            JsonArray json = new JsonParser().parse(data).getAsJsonArray();
+                            setPlayer(json);
+                        }
                     } else setup();
                     statement.close();
                     result.close();
