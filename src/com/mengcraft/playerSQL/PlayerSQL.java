@@ -111,6 +111,7 @@ public class PlayerSQL extends JavaPlugin {
             String name = event.getPlayer().getName();
             OnlinePlayer onlinePlayer = PlayerManager.getOnlinePlayer(name);
             onlinePlayer.savePlayer();
+            onlinePlayer.stopSchedule();
             String message = "Player " + name + " offline";
             getLogger().info(message);
         }
@@ -120,6 +121,7 @@ public class PlayerSQL extends JavaPlugin {
             String name = event.getPlayer().getName();
             OnlinePlayer onlinePlayer = PlayerManager.getOnlinePlayer(name);
             onlinePlayer.loadPlayer();
+            onlinePlayer.startSchedule();
             String message = "Player " + name + " online";
             getLogger().info(message);
         }

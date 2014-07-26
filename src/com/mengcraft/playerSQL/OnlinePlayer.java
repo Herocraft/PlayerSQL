@@ -29,9 +29,26 @@ import java.util.Map;
 public class OnlinePlayer {
 
     private final String name;
+    private int taskId = -1;
 
     public OnlinePlayer(String name) {
         this.name = name;
+    }
+
+    public void startSchedule() {
+        if (taskId < 0) {
+            taskId = new PlayerSchedule().runTaskTimerAsynchronously(
+                    PlayerSQL.getInstance(),
+                    6000,
+                    6000
+            ).getTaskId();
+        }
+    }
+
+    public void stopSchedule() {
+        if (taskId > 0) {
+            PlayerSQL.getInstance().getServer().getScheduler().cancelTask(taskId);
+        }
     }
 
     public void loadPlayer() {
@@ -111,6 +128,13 @@ public class OnlinePlayer {
             }
         }
         return potions;
+    }
+
+    private class PlayerSchedule extends BukkitRunnable {
+        @Override
+        public void run() {
+            savePlayer();
+        }
     }
 
     private class LoadPlayer extends BukkitRunnable {
