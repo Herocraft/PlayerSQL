@@ -1,7 +1,8 @@
 package com.mengcraft.playerSQL;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -15,8 +16,16 @@ import java.sql.Statement;
 
 public class PlayerSQL extends JavaPlugin {
 
-    public static PlayerSQL plugin = null;
-    public static Connection connection = null;
+    private static PlayerSQL plugin = null;
+    private static Connection connection = null;
+
+    public static Connection getConnection() {
+        return connection;
+    }
+
+    public static PlayerSQL getInstance() {
+        return plugin;
+    }
 
     @Override
     public void onLoad() {
@@ -26,16 +35,23 @@ public class PlayerSQL extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        boolean use = getConfig().getBoolean("plugin.use");
+        boolean use = getConfig().getBoolean("plugin.use", false);
         if (use) {
             try {
                 setConnection();
-                setTables();
-                new CheckConnectionTask().runTaskTimer(this,
+                setDataTable();
+                new CheckTask().runTaskTimer(this,
                         getConfig().getInt("plugin.check", 3000),
                         getConfig().getInt("plugin.check", 3000)
                 );
-                getServer().getPluginManager().registerEvents(new Listener(), this);
+                getServer().getPluginManager().registerEvents(new PlayerListener(), this);
+
+                String[] version = getServer().getBukkitVersion().split("-")[0].split("\\.");
+                boolean useUUID = Integer.parseInt(version[1]) > 7
+                        || (Integer.parseInt(version[1]) > 6
+                        && Integer.parseInt(version[2]) > 2);
+                getConfig().set("useUUID", useUUID);
+
                 getLogger().info("Author: min梦梦");
                 getLogger().info("插件作者: min梦梦");
             } catch (Exception e) {
@@ -51,20 +67,19 @@ public class PlayerSQL extends JavaPlugin {
                 getLogger().warning("Failed to connect to mcstats.org");
             }
         } else {
-            getLogger().warning("Please modify config.yml!!!!!");
-            getServer().getPluginManager().disablePlugin(this);
+            getLogger().warning("Please modify config.yml!!!");
+            setEnabled(false);
         }
     }
 
     @Override
     public void onDisable() {
         PlayerManager.saveAll();
-        PlayerManager.clear();
         getLogger().info("Author: min梦梦");
         getLogger().info("插件作者: min梦梦");
     }
 
-    private void setConnection(){
+    private void setConnection() {
         String driver = getConfig().getString("plugin.driver");
         String database = getConfig().getString("plugin.database");
         String username = getConfig().getString("plugin.username");
@@ -77,7 +92,7 @@ public class PlayerSQL extends JavaPlugin {
         }
     }
 
-    private void setTables() throws SQLException {
+    private void setDataTable() throws SQLException {
         String sql = "CREATE TABLE IF NOT EXISTS PlayerSQL(" +
                 "ID int NOT NULL AUTO_INCREMENT, " +
                 "NAME text NULL, " +
@@ -89,43 +104,40 @@ public class PlayerSQL extends JavaPlugin {
         statement.close();
     }
 
-    private void checkConnection() throws SQLException {
-        if (connection != null) {
-            boolean isClosed = connection.isClosed();
-            if (isClosed) {
-                setConnection();
-            }
-        }
-    }
+    private class PlayerListener implements Listener {
 
-    public class Listener implements org.bukkit.event.Listener {
-        @EventHandler
+        @EventHandler(priority = EventPriority.HIGHEST)
         public void playerQuit(PlayerQuitEvent event) {
-            Player player = event.getPlayer();
-            PlayerData playerData = PlayerManager.get(player);
-            playerData.save();
-            playerData.stopDaily();
-            PlayerManager.remove(player);
+            String name = event.getPlayer().getName();
+            OnlinePlayer onlinePlayer = PlayerManager.getOnlinePlayer(name);
+            onlinePlayer.savePlayer();
+            String message = "Player " + name + " offline";
+            getLogger().info(message);
         }
 
-        @EventHandler
+        @EventHandler(priority = EventPriority.HIGHEST)
         public void playerJoin(PlayerJoinEvent event) {
-            Player player = event.getPlayer();
-            boolean isDead = player.isDead();
-            if (isDead) player.spigot().respawn();
-            PlayerData getPlayer = PlayerManager.get(player);
-            getPlayer.load();
-            getPlayer.startDaily();
+            String name = event.getPlayer().getName();
+            OnlinePlayer onlinePlayer = PlayerManager.getOnlinePlayer(name);
+            onlinePlayer.loadPlayer();
+            String message = "Player " + name + " online";
+            getLogger().info(message);
         }
     }
 
-    public class CheckConnectionTask extends BukkitRunnable {
+    private class CheckTask extends BukkitRunnable {
         @Override
         public void run() {
-            try {
-                checkConnection();
-            } catch (SQLException e) {
-                e.printStackTrace();
+            if (connection != null) {
+                boolean isClosed = false;
+                try {
+                    isClosed = connection.isClosed();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                if (isClosed) {
+                    setConnection();
+                }
             }
         }
     }
