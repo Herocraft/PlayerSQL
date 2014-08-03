@@ -140,7 +140,7 @@ public class OnlinePlayer {
     private class LoadPlayer extends BukkitRunnable {
         @Override
         public void run() {
-            Player player = PlayerSQL.getInstance().getServer().getPlayer(name);
+            Player player = PlayerSQL.getInstance().getServer().getPlayerExact(name);
             String playerName = getPlayerName(player);
             try {
                 String sql = "SELECT DATA FROM PlayerSQL " +

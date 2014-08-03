@@ -49,9 +49,8 @@ public class PlayerSQL extends JavaPlugin {
                 String[] version = getServer().getBukkitVersion().split("-")[0].split("\\.");
                 boolean useUUID = Integer.parseInt(version[1]) > 7
                         || (Integer.parseInt(version[1]) > 6
-                        && Integer.parseInt(version[2]) > 2);
+                        && Integer.parseInt(version[2]) > 5);
                 getConfig().set("useUUID", useUUID);
-
                 getLogger().info("Author: min梦梦");
                 getLogger().info("插件作者: min梦梦");
             } catch (Exception e) {
