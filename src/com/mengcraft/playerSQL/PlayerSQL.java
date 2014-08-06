@@ -105,7 +105,7 @@ public class PlayerSQL extends JavaPlugin {
 
     private class PlayerListener implements Listener {
 
-        @EventHandler(priority = EventPriority.HIGHEST)
+        @EventHandler(priority = EventPriority.MONITOR)
         public void playerQuit(PlayerQuitEvent event) {
             String name = event.getPlayer().getName();
             OnlinePlayer onlinePlayer = PlayerManager.getOnlinePlayer(name);
