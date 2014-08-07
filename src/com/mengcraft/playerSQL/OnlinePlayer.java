@@ -217,7 +217,11 @@ public class OnlinePlayer {
             boolean sync = PlayerSQL.getInstance().getConfig().getBoolean("sync.health", true);
             if (sync) {
                 double health = (double) array.get(0);
-                player.setHealth(health);
+                try {
+                    player.setHealth(health);
+                } catch (Exception e) {
+                    player.setHealth(player.getMaxHealth());
+                }
             }
         }
 
